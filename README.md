@@ -230,14 +230,15 @@ gpf supports multiple languages. The UI language is **automatically detected** f
 
 ### How Language is Detected
 
-gpf checks these environment variables in order:
+gpf determines the language in this priority:
 
-1. `LANG` (e.g., `ko_KR.UTF-8` → Korean)
-2. `LANGUAGE`
-3. `LC_ALL`
-4. `LC_MESSAGES`
+1. `--lang` / `-l` flag (e.g., `gpf --lang ko`)
+2. Saved preference in `~/.gpf/lang` (persisted from last `--lang` use)
+3. `LANG` environment variable (e.g., `ko_KR.UTF-8` → Korean)
+4. `LANGUAGE`, `LC_ALL`, `LC_MESSAGES`
+5. English (default fallback)
 
-If none of these are set, or the locale is not available, **English** is used as the default.
+**Once you set `--lang`, the preference is saved** to `~/.gpf/lang` and remembered across sessions. No need to set it every time.
 
 ### Changing the Language
 

@@ -4,6 +4,7 @@ import (
 	"embed"
 	"encoding/json"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -12,9 +13,15 @@ var fs embed.FS
 
 var defaultLocale = Locale()
 
-// forcedLocale, when non-empty, overrides the auto-detected locale.
+// forcedLocale, when non-empty, overrides everything.
 // Set via Force() from the --lang/-l CLI flag.
 var forcedLocale string
+
+// configPath is ~/.gpf/lang
+var configPath = func() string {
+	dir := filepath.Join(os.Getenv("HOME"), ".gpf")
+	return filepath.Join(dir, "lang")
+}()
 
 // Translator provides access to translated strings.
 type Translator struct {
@@ -29,19 +36,26 @@ func (t *Translator) T(key string) string {
 	return key
 }
 
-// Force overrides the auto-detected locale with a specific one.
+// Force overrides the auto-detected locale and persists it to disk.
 // Called from the --lang/-l CLI flag. Has no effect if locale is empty.
 func Force(locale string) {
 	if locale != "" {
 		forcedLocale = locale
+		Save(locale)
 	}
 }
 
-// Default returns a Translator for the system locale.
-// If Force() was called, returns a Translator for the forced locale.
+// Default returns a Translator using this priority:
+// 1. --lang flag (Force)
+// 2. Saved locale (~/.gpf/lang)
+// 3. Auto-detected from env (LANG, etc.)
+// 4. English fallback
 func Default() *Translator {
 	if forcedLocale != "" {
 		return MustLoad(forcedLocale)
+	}
+	if saved := Loaded(); saved != "" {
+		return MustLoad(saved)
 	}
 	return MustLoad(defaultLocale)
 }
@@ -70,6 +84,23 @@ func MustLoad(locale string) *Translator {
 	return &Translator{msgs: msgs}
 }
 
+// Save writes the locale to ~/.gpf/lang so it persists across sessions.
+func Save(locale string) {
+	dir := filepath.Dir(configPath)
+	os.MkdirAll(dir, 0700)
+	os.WriteFile(configPath, []byte(locale), 0600)
+}
+
+// Loaded reads the saved locale from ~/.gpf/lang.
+// Returns empty string if no saved locale exists.
+func Loaded() string {
+	data, err := os.ReadFile(configPath)
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(data))
+}
+
 // Locale detects the user's preferred locale from environment.
 // Checks LANG, LANGUAGE, LC_ALL, LC_MESSAGES in order.
 // Returns "en" as the default fallback.
@@ -92,8 +123,7 @@ func parseLocale(s string) string {
 	parts := strings.SplitN(s, "@", 2)
 	s = parts[0]
 
-	// Full locale like ko_KR → try ko_KR first, then ko
-	// We only have ko.json, en.json, etc. so use the primary language
+	// Full locale like ko_KR → try ko first, then pt-BR
 	parts = strings.SplitN(s, "_", 2)
 	primary := strings.ToLower(parts[0])
 
