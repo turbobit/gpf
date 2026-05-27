@@ -64,5 +64,6 @@ if ($currentPath -notlike "*$gpfPath*") {
 }
 
 Write-Host ""
-Write-Host "Installation complete! Press Enter to exit."
-Read-Host
+Write-Host "Installation complete!"
+Write-Host "Press any key to exit..."
+$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
