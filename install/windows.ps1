@@ -10,9 +10,6 @@ param(
 $REPO = "turbobit/gpf"
 $ProgressPreference = "SilentlyContinue"
 
-# Strip leading 'v' if present
-$versionClean = $Version -replace '^v', ''
-
 # Detect architecture from environment variables
 $arch = "amd64"
 $procArch = [Environment]::GetEnvironmentVariable("PROCESSOR_ARCHITECTURE", "Process")
@@ -29,65 +26,21 @@ $installDir = Join-Path $env:USERPROFILE ".gpf"
 $installPath = Join-Path $installDir "gpf.exe"
 
 try {
+    $binaryName = "gpf_windows_${arch}.exe"
+
+    $downloadUrl = "https://github.com/${REPO}/releases/latest/download/${binaryName}"
+    if ($Version -ne "latest") {
+        $versionClean = $Version -replace '^v', ''
+        $downloadUrl = "https://github.com/${REPO}/releases/download/v${versionClean}/${binaryName}"
+    }
+
     Write-Host "Installing gpf ${Version} for Windows/${arch}..."
-
-    $baseDownloadUrl = "https://github.com/${REPO}/releases"
-    if ($versionClean -eq "latest") {
-        $baseDownloadUrl += "/latest"
-    } else {
-        $baseDownloadUrl += "/download/v${versionClean}"
-    }
-
-    # Release file name: gpf_<version>_windows_<arch>.exe
-    # Also try bare name: gpf_windows_<arch>.exe (for older releases)
-    $downloadUrl = ""
-    $urlsToTry = @(
-        "${baseDownloadUrl}/download/gpf_${versionClean}_windows_${arch}.exe",
-        "${baseDownloadUrl}/download/gpf_windows_${arch}.exe",
-        "${baseDownloadUrl}/download/gpf_${versionClean}_windows_${arch}.tar.gz",
-        "${baseDownloadUrl}/download/gpf_windows_${arch}.tar.gz"
-    )
-
-    $tmpFile = Join-Path $env:TEMP "gpf_install.tmp"
-    $downloaded = $false
-    $isTar = $false
-
-    foreach ($url in $urlsToTry) {
-        try {
-            Write-Host "Trying: $url"
-            $response = Invoke-WebRequest -Uri $url -Head -UseBasicParsing -ErrorAction SilentlyContinue
-            if ($response.StatusCode -eq 200) {
-                $downloadUrl = $url
-                if ($url -match '\.tar\.gz') { $isTar = $true }
-                break
-            }
-        } catch {}
-    }
-
-    if (-not $downloadUrl) {
-        Write-Host "Error: no downloadable file found for Windows/${arch}"
-        exit 1
-    }
-
     Write-Host "Downloading from: $downloadUrl"
-    Invoke-WebRequest -Uri $downloadUrl -OutFile $tmpFile -UseBasicParsing
 
-    if ($isTar) {
-        Write-Host "Extracting..."
-        tar -xzf $tmpFile -C (Split-Path $installPath) 2>$null
-        $extracted = Get-ChildItem (Split-Path $installPath) -Filter "*.exe" | Select-Object -First 1
-        if ($extracted) {
-            if ($extracted.FullName -ne $installPath) {
-                Move-Item $extracted.FullName $installPath -Force
-            }
-        }
-        Remove-Item $tmpFile -ErrorAction SilentlyContinue
-    } else {
-        Move-Item $tmpFile $installPath -Force
-    }
+    Invoke-WebRequest -Uri $downloadUrl -OutFile $installPath -UseBasicParsing
 
     if (-not (Test-Path $installPath)) {
-        Write-Host "Error: binary not found at $installPath"
+        Write-Host "Error: download completed but file not found at $installPath"
         exit 1
     }
 
