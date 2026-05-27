@@ -1,0 +1,57 @@
+version: 2
+
+project_name: gpf
+
+build:
+  id: gpf
+  main: .
+  binary: gpf
+  env:
+    - CGO_ENABLED=0
+  goos:
+    - linux
+    - darwin
+    - windows
+  goarch:
+    - amd64
+    - arm64
+  ignore:
+    - goos: darwin
+      goarch: amd64
+  mod_timestamp: "{{ .CommitTimestamp }}"
+  flags:
+    - -trimpath
+  ldflags:
+    - -s -w
+    - -X main.version={{ .Version }}
+    - -X main.commit={{ .ShortCommit }}
+    - -X main.date={{ .CommitTime }}
+
+archives:
+  - id: gpf-archive
+    format: binary
+    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+
+changelog:
+  use: github
+  sort: asc
+  groups:
+    - title: Features
+      regexp: '^.*feat[\(].*:'
+      order: 0
+    - title: Bug fixes
+      regexp: '^.*fix[\(].*:'
+      order: 1
+    - title: Documentation
+      regexp: '^.*docs[\(].*:'
+      order: 2
+    - title: Dependency updates
+      regexp: '^.*chore\(deps\)[\(].*:'
+      order: 3
+    - title: Others
+      order: 4
+  filters:
+    exclude:
+      - "^Merge "
+      - "^Merge pull request"
+      - "^Merge branch"
