@@ -38,38 +38,52 @@ try {
         $baseDownloadUrl += "/download/v${versionClean}"
     }
 
-    # Try bare binary first, fall back to tar.gz
-    $binaryName = "gpf_windows_${arch}.exe"
-    $tarName = "gpf_windows_${arch}.tar.gz"
-    $binaryUrl = "${baseDownloadUrl}/download/${binaryName}"
-    $tarUrl = "${baseDownloadUrl}/download/${tarName}"
+    # Release file name: gpf_<version>_windows_<arch>.exe
+    # Also try bare name: gpf_windows_<arch>.exe (for older releases)
+    $downloadUrl = ""
+    $urlsToTry = @(
+        "${baseDownloadUrl}/download/gpf_${versionClean}_windows_${arch}.exe",
+        "${baseDownloadUrl}/download/gpf_windows_${arch}.exe",
+        "${baseDownloadUrl}/download/gpf_${versionClean}_windows_${arch}.tar.gz",
+        "${baseDownloadUrl}/download/gpf_windows_${arch}.tar.gz"
+    )
 
-    Write-Host "Downloading..."
-    $tmpTar = Join-Path $env:TEMP "gpf_install.tar.gz"
+    $tmpFile = Join-Path $env:TEMP "gpf_install.tmp"
+    $downloaded = $false
+    $isTar = $false
 
-    try {
-        Invoke-WebRequest -Uri $binaryUrl -OutFile $installPath -UseBasicParsing
-        Write-Host "Downloaded binary directly."
-    } catch {
-        # Bare binary not found, try tar.gz
+    foreach ($url in $urlsToTry) {
         try {
-            Invoke-WebRequest -Uri $tarUrl -OutFile $tmpTar -UseBasicParsing
-            Write-Host "Downloaded tar.gz, extracting..."
-            tar -xzf $tmpTar -C (Split-Path $installPath) 2>$null
-            # The extracted file may have a different name, find it
-            $extracted = Get-ChildItem (Split-Path $installPath) -Filter "*.exe" | Select-Object -First 1
-            if ($extracted) {
-                if ($extracted.FullName -ne $installPath) {
-                    Move-Item $extracted.FullName $installPath -Force
-                }
+            Write-Host "Trying: $url"
+            $response = Invoke-WebRequest -Uri $url -Head -UseBasicParsing -ErrorAction SilentlyContinue
+            if ($response.StatusCode -eq 200) {
+                $downloadUrl = $url
+                if ($url -match '\.tar\.gz') { $isTar = $true }
+                break
             }
-            Remove-Item $tmpTar -ErrorAction SilentlyContinue
-            Write-Host "Extracted binary."
-        } catch {
-            Write-Host "Error: failed to download gpf for Windows/${arch}"
-            Write-Host $_.Exception.Message
-            exit 1
+        } catch {}
+    }
+
+    if (-not $downloadUrl) {
+        Write-Host "Error: no downloadable file found for Windows/${arch}"
+        exit 1
+    }
+
+    Write-Host "Downloading from: $downloadUrl"
+    Invoke-WebRequest -Uri $downloadUrl -OutFile $tmpFile -UseBasicParsing
+
+    if ($isTar) {
+        Write-Host "Extracting..."
+        tar -xzf $tmpFile -C (Split-Path $installPath) 2>$null
+        $extracted = Get-ChildItem (Split-Path $installPath) -Filter "*.exe" | Select-Object -First 1
+        if ($extracted) {
+            if ($extracted.FullName -ne $installPath) {
+                Move-Item $extracted.FullName $installPath -Force
+            }
         }
+        Remove-Item $tmpFile -ErrorAction SilentlyContinue
+    } else {
+        Move-Item $tmpFile $installPath -Force
     }
 
     if (-not (Test-Path $installPath)) {

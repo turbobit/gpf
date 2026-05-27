@@ -5,7 +5,7 @@ project_name: gpf
 builds:
   - id: gpf
     main: .
-    binary: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+    binary: gpf
     env:
       - CGO_ENABLED=0
     goos:

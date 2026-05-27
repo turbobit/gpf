@@ -35,8 +35,7 @@ case "$ARCH" in
     ;;
 esac
 
-BINARY="gpf_${OS}_${ARCH}"
-TARBALL="gpf_${OS}_${ARCH}.tar.gz"
+version_clean=$(echo "$VERSION" | sed 's/^v//')
 
 base_url="https://github.com/${REPO}/releases"
 if [ "$VERSION" = "latest" ]; then
@@ -50,48 +49,72 @@ TMPFILE="${TMPDIR}/gpf"
 
 echo "Installing gpf ${VERSION} for ${OS}/${ARCH}..."
 
-# Try bare binary first, fall back to tar.gz
+# Try various download URLs in order of preference
 DOWNLOAD_OK=0
-BINARY_URL="${base_url}/download/${BINARY}"
-TARBALL_URL="${base_url}/download/${TARBALL}"
+URLS_TO_TRY=""
 
-if command -v curl >/dev/null 2>&1; then
-  if curl -fsSL --progress-bar "$BINARY_URL" -o "$TMPFILE" 2>/dev/null; then
-    DOWNLOAD_OK=1
-  else
-    echo "Downloading tar.gz..."
-    TMPTAR="${TMPDIR}/gpf.tar.gz"
-    if curl -fsSL --progress-bar "$TARBALL_URL" -o "$TMPTAR" 2>/dev/null; then
-      tar xzf "$TMPTAR" -C "$TMPDIR" 2>/dev/null
-      # Find the extracted binary
-      EXTRACTED=$(find "$TMPDIR" -name "gpf_*" -type f | head -1)
-      if [ -n "$EXTRACTED" ]; then
-        mv "$EXTRACTED" "$TMPFILE"
-        DOWNLOAD_OK=1
-      fi
-      rm -f "$TMPTAR"
-    fi
-  fi
-elif command -v wget >/dev/null 2>&1; then
-  if wget -q -O "$TMPFILE" "$BINARY_URL" 2>/dev/null; then
-    DOWNLOAD_OK=1
-  else
-    echo "Downloading tar.gz..."
-    TMPTAR="${TMPDIR}/gpf.tar.gz"
-    if wget -q -O "$TMPTAR" "$TARBALL_URL" 2>/dev/null; then
-      tar xzf "$TMPTAR" -C "$TMPDIR" 2>/dev/null
-      EXTRACTED=$(find "$TMPDIR" -name "gpf_*" -type f | head -1)
-      if [ -n "$EXTRACTED" ]; then
-        mv "$EXTRACTED" "$TMPFILE"
-        DOWNLOAD_OK=1
-      fi
-      rm -f "$TMPTAR"
-    fi
-  fi
-else
-  echo "Error: curl or wget is required to download the binary"
-  exit 1
+if [ "$VERSION" != "latest" ]; then
+  URLS_TO_TRY="${base_url}/download/gpf_${version_clean}_${OS}_${ARCH}"
+  URLS_TO_TRY="${URLS_TO_TRY}
+${base_url}/download/gpf_${version_clean}_${OS}_${ARCH}.tar.gz"
 fi
+
+URLS_TO_TRY="${URLS_TO_TRY}
+${base_url}/download/gpf_${OS}_${ARCH}
+${base_url}/download/gpf_${OS}_${ARCH}.tar.gz"
+
+TMPTAR="${TMPDIR}/gpf.tar.gz"
+
+for url in $URLS_TO_TRY; do
+  echo "Trying: $url"
+
+  # Try downloading bare binary
+  if command -v curl >/dev/null 2>&1; then
+    if curl -fsSL --progress-bar "$url" -o "$TMPFILE" 2>/dev/null; then
+      if [ -s "$TMPFILE" ]; then
+        DOWNLOAD_OK=1
+        break
+      fi
+    fi
+  elif command -v wget >/dev/null 2>&1; then
+    if wget -q -O "$TMPFILE" "$url" 2>/dev/null; then
+      if [ -s "$TMPFILE" ]; then
+        DOWNLOAD_OK=1
+        break
+      fi
+    fi
+  fi
+
+  # Try downloading tar.gz
+  is_tar=0
+  case "$url" in
+    *.tar.gz) is_tar=1 ;;
+  esac
+
+  if [ "$is_tar" = "1" ]; then
+    if command -v curl >/dev/null 2>&1; then
+      if curl -fsSL --progress-bar "$url" -o "$TMPTAR" 2>/dev/null; then
+        tar xzf "$TMPTAR" -C "$TMPDIR" 2>/dev/null
+        EXTRACTED=$(find "$TMPDIR" -name "gpf*" -type f ! -name "*.tar.gz" ! -name "*.txt" | head -1)
+        if [ -n "$EXTRACTED" ] && [ -s "$EXTRACTED" ]; then
+          mv "$EXTRACTED" "$TMPFILE"
+          DOWNLOAD_OK=1
+          break
+        fi
+      fi
+    elif command -v wget >/dev/null 2>&1; then
+      if wget -q -O "$TMPTAR" "$url" 2>/dev/null; then
+        tar xzf "$TMPTAR" -C "$TMPDIR" 2>/dev/null
+        EXTRACTED=$(find "$TMPDIR" -name "gpf*" -type f ! -name "*.tar.gz" ! -name "*.txt" | head -1)
+        if [ -n "$EXTRACTED" ] && [ -s "$EXTRACTED" ]; then
+          mv "$EXTRACTED" "$TMPFILE"
+          DOWNLOAD_OK=1
+          break
+        fi
+      fi
+    fi
+  fi
+done
 
 if [ "$DOWNLOAD_OK" != "1" ] || [ ! -s "$TMPFILE" ]; then
   echo "Error: failed to download gpf ${VERSION} for ${OS}/${ARCH}"
