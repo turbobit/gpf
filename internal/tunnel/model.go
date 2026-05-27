@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/user/port-forwarding/internal/config"
+	"github.com/turbobit/gpf/internal/config"
 )
 
 // Tunnel represents an active port forwarding tunnel.

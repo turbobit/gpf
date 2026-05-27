@@ -11,10 +11,10 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/bubbletea"
-	"github.com/user/port-forwarding/internal/config"
-	"github.com/user/port-forwarding/internal/ssh"
-	"github.com/user/port-forwarding/internal/theme"
-	"github.com/user/port-forwarding/internal/tunnel"
+	"github.com/turbobit/gpf/internal/config"
+	"github.com/turbobit/gpf/internal/ssh"
+	"github.com/turbobit/gpf/internal/theme"
+	"github.com/turbobit/gpf/internal/tunnel"
 )
 
 // --- Model ---

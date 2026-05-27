@@ -6,6 +6,8 @@ A fast, modern SSH port forwarding CLI & TUI tool built with Go and Bubble Tea.
 ![Go](https://img.shields.io/badge/Go-1.22%2B-00ADD8)
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
 
+**Documentation:** [English](README.md) | [한국어](README.ko.md)
+
 ## Description
 
 **gpf** (Greenfield Port Forwarding) is a terminal-native tool for managing SSH port forwards with ease. It supports both a minimal CLI and a full interactive TUI powered by [Bubble Tea](https://github.com/charmbracelet/bubbletea).
@@ -43,7 +45,7 @@ A fast, modern SSH port forwarding CLI & TUI tool built with Go and Bubble Tea.
 
 ### Option 1: GitHub Releases (Recommended)
 
-Pre-built binaries are available on [GitHub Releases](https://github.com/user/port-forwarding/releases).
+Pre-built binaries are available on [GitHub Releases](https://github.com/turbobit/gpf/releases).
 
 Download the appropriate binary for your platform:
 
@@ -58,7 +60,7 @@ Download the appropriate binary for your platform:
 ```bash
 # Example: Linux amd64
 VERSION=v0.1.0
-curl -LO "https://github.com/user/port-forwarding/releases/download/${VERSION}/gpf_linux_amd64"
+curl -LO "https://github.com/turbobit/gpf/releases/download/${VERSION}/gpf_linux_amd64"
 chmod +x gpf_linux_amd64
 sudo mv gpf_linux_amd64 /usr/local/bin/gpf
 ```
@@ -66,25 +68,25 @@ sudo mv gpf_linux_amd64 /usr/local/bin/gpf
 ### Option 2: Go install
 
 ```bash
-go install github.com/user/port-forwarding@latest
+go install github.com/turbobit/gpf@latest
 ```
 
 ### Option 3: Unix install script
 
 ```bash
-curl -sSfL https://raw.githubusercontent.com/user/port-forwarding/main/install/unix.sh | sh -s -- v0.1.0
+curl -sSfL https://raw.githubusercontent.com/turbobit/gpf/main/install/unix.sh | sh -s -- v0.1.0
 ```
 
-Or with a specific version:
+Or install the latest version (no version argument needed):
 
 ```bash
-./install/unix.sh v0.1.0
+curl -sSfL https://raw.githubusercontent.com/turbobit/gpf/main/install/unix.sh | sh
 ```
 
 ### Option 4: Windows PowerShell
 
 ```powershell
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/user/port-forwarding/main/install/windows.ps1" -UseBasicParsing | Invoke-Expression
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/turbobit/gpf/main/install/windows.ps1" -UseBasicParsing | Invoke-Expression
 ```
 
 Or with a specific version:
@@ -214,8 +216,8 @@ forwards:
 ## Building from source
 
 ```bash
-git clone https://github.com/user/port-forwarding.git
-cd port-forwarding
+git clone https://github.com/turbobit/gpf.git
+cd gpf
 go build -o gpf .
 ```
 
@@ -265,6 +267,10 @@ We welcome community translations! To contribute:
 - Submit a PR with a brief description of the language and any notes.
 
 See `i18n/README.md` for full details.
+
+## Acknowledgments
+
+gpf was inspired by [ggh](https://github.com/byawitz/ggh), a wonderful SSH config helper. Thank you to [@byawitz](https://github.com/byawitz) for the inspiration.
 
 ## License
 

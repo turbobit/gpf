@@ -2,7 +2,7 @@ package interactive
 
 import (
 	"github.com/charmbracelet/bubbletea"
-	"github.com/user/port-forwarding/internal/config"
+	"github.com/turbobit/gpf/internal/config"
 )
 
 // Config launches the server list TUI.

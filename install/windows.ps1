@@ -1,20 +1,14 @@
 # windows.ps1 — Install gpf (Greenfield Port Forwarding) for Windows
 # Usage (PowerShell):
-#   Invoke-WebRequest -Uri "https://raw.githubusercontent.com/user/port-forwarding/main/install/windows.ps1" -UseBasicParsing | Invoke-Expression
+#   Invoke-WebRequest -Uri "https://raw.githubusercontent.com/turbobit/gpf/main/install/windows.ps1" -UseBasicParsing | Invoke-Expression
 #   .\install\windows.ps1 v0.1.0
 
 param(
-    [string]$Version = ""
+    [string]$Version = "latest"
 )
 
 $ErrorActionPreference = "Stop"
-$REPO = "user/port-forwarding"
-
-if (-not $Version) {
-    Write-Host "Usage: .\windows.ps1 <version>"
-    Write-Host "Example: .\windows.ps1 v0.1.0"
-    exit 1
-}
+$REPO = "turbobit/gpf"
 
 # Strip leading 'v' if present
 $versionClean = $Version -replace '^v', ''
@@ -32,21 +26,36 @@ if ([Environment]::Is64BitOperatingSystem) {
     exit 1
 }
 
-$binaryName = "gpf_windows_${arch}"
+$binaryName = "gpf_windows_${arch}.exe"
 $installDir = Join-Path $env:USERPROFILE ".gpf"
 $installPath = Join-Path $installDir "gpf.exe"
 
-Write-Host "Installing gpf $Version for Windows/$arch..."
+Write-Host "Installing gpf ${Version} for Windows/${arch}..."
 
-$releasesUrl = "https://github.com/${REPO}/releases/download/v${versionClean}/${binaryName}"
+if ($versionClean -eq "latest") {
+    $releasesUrl = "https://github.com/${REPO}/releases/latest/download/${binaryName}"
+} else {
+    $releasesUrl = "https://github.com/${REPO}/releases/download/v${versionClean}/${binaryName}"
+}
 
 $ProgressPreference = "SilentlyContinue"
-Invoke-WebRequest -Uri $releasesUrl -OutFile $installPath -UseBasicParsing
+try {
+    Invoke-WebRequest -Uri $releasesUrl -OutFile $installPath -UseBasicParsing
+} catch {
+    Write-Host "Error: failed to download gpf ${Version} for Windows/${arch}"
+    Write-Host $_.Exception.Message
+    exit 1
+}
+
+if (-not (Test-Path $installPath)) {
+    Write-Host "Error: download completed but file not found at $installPath"
+    exit 1
+}
 
 Write-Host "Installed gpf to $installPath"
 
 # Add to user PATH if not already present
-$gpfPath = Join-Path $installDir
+$gpfPath = $installDir
 $currentPath = [Environment]::GetEnvironmentVariable("Path", "User")
 if ($currentPath -notlike "*$gpfPath*") {
     [Environment]::SetEnvironmentVariable("Path", "$currentPath;$gpfPath", "User")

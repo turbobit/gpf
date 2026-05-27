@@ -5,11 +5,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/user/port-forwarding/internal/command"
-	"github.com/user/port-forwarding/internal/config"
-	"github.com/user/port-forwarding/internal/interactive"
-	"github.com/user/port-forwarding/internal/ssh"
-	"github.com/user/port-forwarding/internal/tunnel"
+	"github.com/turbobit/gpf/internal/command"
+	"github.com/turbobit/gpf/internal/config"
+	"github.com/turbobit/gpf/internal/interactive"
+	"github.com/turbobit/gpf/internal/ssh"
+	"github.com/turbobit/gpf/internal/tunnel"
 )
 
 func Main() {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/user/port-forwarding/cmd"
+	"github.com/turbobit/gpf/cmd"
 )
 
 var (

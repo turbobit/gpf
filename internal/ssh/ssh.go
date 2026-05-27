@@ -5,7 +5,7 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/user/port-forwarding/internal/config"
+	"github.com/turbobit/gpf/internal/config"
 )
 
 // GenerateTunnelArgs builds the ssh command args for port forwarding.

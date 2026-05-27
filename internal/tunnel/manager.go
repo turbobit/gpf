@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/user/port-forwarding/internal/config"
-	"github.com/user/port-forwarding/internal/ssh"
+	"github.com/turbobit/gpf/internal/config"
+	"github.com/turbobit/gpf/internal/ssh"
 )
 
 // Create creates a new port forwarding tunnel.

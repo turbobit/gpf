@@ -1,4 +1,4 @@
-module github.com/user/port-forwarding
+module github.com/turbobit/gpf
 
 go 1.25.1
 
