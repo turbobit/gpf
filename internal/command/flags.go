@@ -42,6 +42,7 @@ func Which(args []string) (Action, string) {
 	case "stop-all":
 		return StopAllTunnels, ""
 	default:
-		return InteractiveConfig, ""
+		// "gpf mac" → search ~/.ssh/config for "mac"
+		return InteractiveConfig, strings.Join(args, " ")
 	}
 }
