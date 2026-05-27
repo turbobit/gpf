@@ -62,3 +62,7 @@ if ($currentPath -notlike "*$gpfPath*") {
     Write-Host "Added $gpfPath to your PATH (user scope)"
     Write-Host "You may need to restart your terminal for the PATH change to take effect."
 }
+
+Write-Host ""
+Write-Host "Installation complete! Press Enter to exit."
+Read-Host
