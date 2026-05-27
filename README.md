@@ -74,19 +74,19 @@ go install github.com/turbobit/gpf@latest
 ### Option 3: Unix install script
 
 ```bash
-curl -sSfL https://raw.githubusercontent.com/turbobit/gpf/main/install/unix.sh | sh -s -- v0.1.0
+curl -sSfL https://raw.githubusercontent.com/turbobit/gpf/master/install/unix.sh | sh -s -- v0.1.0
 ```
 
 Or install the latest version (no version argument needed):
 
 ```bash
-curl -sSfL https://raw.githubusercontent.com/turbobit/gpf/main/install/unix.sh | sh
+curl -sSfL https://raw.githubusercontent.com/turbobit/gpf/master/install/unix.sh | sh
 ```
 
 ### Option 4: Windows PowerShell
 
 ```powershell
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/turbobit/gpf/main/install/windows.ps1" -UseBasicParsing | Invoke-Expression
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/turbobit/gpf/master/install/windows.ps1" -UseBasicParsing | Invoke-Expression
 ```
 
 Or with a specific version:

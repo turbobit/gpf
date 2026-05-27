@@ -1,6 +1,6 @@
 # windows.ps1 — Install gpf (Greenfield Port Forwarding) for Windows
 # Usage (PowerShell):
-#   Invoke-WebRequest -Uri "https://raw.githubusercontent.com/turbobit/gpf/main/install/windows.ps1" -UseBasicParsing | Invoke-Expression
+#   Invoke-WebRequest -Uri "https://raw.githubusercontent.com/turbobit/gpf/master/install/windows.ps1" -UseBasicParsing | Invoke-Expression
 #   .\install\windows.ps1 v0.1.0
 
 param(

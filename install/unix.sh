@@ -1,7 +1,7 @@
 #!/bin/sh
 # install.sh — Install gpf (Greenfield Port Forwarding)
 # Usage:
-#   curl -sSfL https://raw.githubusercontent.com/turbobit/gpf/main/install/unix.sh | sh -s -- v0.1.0
+#   curl -sSfL https://raw.githubusercontent.com/turbobit/gpf/master/install/unix.sh | sh -s -- v0.1.0
 #   ./install/unix.sh v0.1.0
 
 set -e

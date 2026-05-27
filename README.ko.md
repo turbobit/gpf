@@ -74,19 +74,19 @@ go install github.com/turbobit/gpf@latest
 ### 방법 3: Unix 설치 스크립트
 
 ```bash
-curl -sSfL https://raw.githubusercontent.com/turbobit/gpf/main/install/unix.sh | sh -s -- v0.1.0
+curl -sSfL https://raw.githubusercontent.com/turbobit/gpf/master/install/unix.sh | sh -s -- v0.1.0
 ```
 
 최신 버전 설치 (버전 생략 가능):
 
 ```bash
-curl -sSfL https://raw.githubusercontent.com/turbobit/gpf/main/install/unix.sh | sh
+curl -sSfL https://raw.githubusercontent.com/turbobit/gpf/master/install/unix.sh | sh
 ```
 
 ### 방법 4: Windows PowerShell
 
 ```powershell
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/turbobit/gpf/main/install/windows.ps1" -UseBasicParsing | Invoke-Expression
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/turbobit/gpf/master/install/windows.ps1" -UseBasicParsing | Invoke-Expression
 ```
 
 또는 특정 버전:
