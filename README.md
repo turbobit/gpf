@@ -41,13 +41,35 @@ A fast, modern SSH port forwarding CLI & TUI tool built with Go and Bubble Tea.
 
 ## Installation
 
-### Option 1: Go install
+### Option 1: GitHub Releases (Recommended)
+
+Pre-built binaries are available on [GitHub Releases](https://github.com/user/port-forwarding/releases).
+
+Download the appropriate binary for your platform:
+
+| Platform | Binary |
+|----------|--------|
+| Linux amd64 | `gpf_linux_amd64` |
+| Linux arm64 | `gpf_linux_arm64` |
+| macOS arm64 | `gpf_darwin_arm64` |
+| Windows amd64 | `gpf_windows_amd64.exe` |
+| Windows arm64 | `gpf_windows_arm64.exe` |
+
+```bash
+# Example: Linux amd64
+VERSION=v0.1.0
+curl -LO "https://github.com/user/port-forwarding/releases/download/${VERSION}/gpf_linux_amd64"
+chmod +x gpf_linux_amd64
+sudo mv gpf_linux_amd64 /usr/local/bin/gpf
+```
+
+### Option 2: Go install
 
 ```bash
 go install github.com/user/port-forwarding@latest
 ```
 
-### Option 2: Unix install script
+### Option 3: Unix install script
 
 ```bash
 curl -sSfL https://raw.githubusercontent.com/user/port-forwarding/main/install/unix.sh | sh -s -- v0.1.0
@@ -59,7 +81,7 @@ Or with a specific version:
 ./install/unix.sh v0.1.0
 ```
 
-### Option 3: Windows PowerShell
+### Option 4: Windows PowerShell
 
 ```powershell
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/user/port-forwarding/main/install/windows.ps1" -UseBasicParsing | Invoke-Expression
@@ -196,6 +218,25 @@ git clone https://github.com/user/port-forwarding.git
 cd port-forwarding
 go build -o gpf .
 ```
+
+## Releases
+
+gpf uses [GoReleaser](https://goreleaser.com/) with GitHub Actions to automate releases. When a `v*` tag is pushed, CI automatically builds binaries for Linux, macOS, and Windows and publishes them to GitHub Releases.
+
+### Release workflow
+
+1. A `v*` tag is pushed (e.g., `git tag v0.1.0 && git push origin v0.1.0`)
+2. The **Release** GitHub Actions workflow triggers
+3. GoReleaser cross-compiles for all supported platforms
+4. Binaries are uploaded to a GitHub Release with generated changelog
+
+### Supported platforms
+
+| OS | Architectures |
+|----|--------------|
+| Linux | amd64, arm64 |
+| macOS | arm64 |
+| Windows | amd64, arm64 |
 
 ## Internationalization (i18n)
 
