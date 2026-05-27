@@ -271,7 +271,7 @@ export LANG=ko_KR.UTF-8
 | 언어 | 파일 | 로케일 예시 |
 |------|------|-------------|
 | English | `i18n/en.json` | `en`, `en_US`, `en_US.UTF-8` |
-| 한국어 | `i18n/ko.json` | `ko`, `ko_KR`, `ko_KR.UTF-8` |
+| 중국어 | `i18n/zh.json` | `zh`, `zh_CN`, `zh_CN.UTF-8` |
 
 ### 새로운 언어 추가
 

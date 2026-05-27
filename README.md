@@ -272,6 +272,7 @@ export LANG=ko_KR.UTF-8
 |----------|------|----------------|
 | English  | `i18n/en.json` | `en`, `en_US`, `en_US.UTF-8` |
 | Korean   | `i18n/ko.json` | `ko`, `ko_KR`, `ko_KR.UTF-8` |
+| Chinese  | `i18n/zh.json` | `zh`, `zh_CN`, `zh_CN.UTF-8` |
 
 ### Adding a New Language
 
