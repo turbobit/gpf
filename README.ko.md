@@ -97,120 +97,98 @@ Invoke-WebRequest -Uri "https://raw.githubusercontent.com/turbobit/gpf/main/inst
 
 ## 사용 방법
 
-### CLI 모드
-
-#### 단일 포트 포워딩
+### 빠른 시작
 
 ```bash
-# 로컬 :8080을 원격 :3000으로 포워딩
-gpf forward localhost:8080 server:3000
+# ~/.ssh/config의 모든 서버 표시
+gpf
 
-# 커스텀 SSH 키 사용
-gpf forward --key ~/.ssh/id_ed25519 localhost:8080 server:3000
+# 키워드로 서버 검색 (이름, 호스트, 사용자 부분 일치)
+gpf mac
+gpf prod
+gpf - macbook
 
-# 커스텀 사용자 사용
-gpf forward --user admin localhost:8080 server:3000
+# 서버의 리스닝 포트 스캔
+gpf ports myserver
 
-# 특정 인터페이스에 바인딩
-gpf forward --bind 0.0.0.0 localhost:8080 server:3000
-```
+# 포트 포워딩 생성
+gpf forward myserver 3000        # 원격 :3000 → 자동 할당된 로컬 포트
+gpf forward myserver 3000 8080   # 원격 :3000 → 로컬 :8080
 
-#### 여러 포트 포워딩
+# 활성 터널 보기
+gpf tunnels
 
-```bash
-# 여러 로컬-원격 매핑
-gpf forward localhost:8080 web:3000 localhost:5432 db:5432 localhost:6379 cache:6379
-
-# 또는 설정 파일 사용
-gpf forward --config forwards.yaml
-```
-
-#### 포워딩 관리
-
-```bash
-# 활성 포워딩 목록
-gpf list
-
-# 특정 포워딩 종료
-gpf disconnect 8080
-
-# 모든 포워딩 종료
-gpf disconnect --all
-```
-
-#### TUI 모드
-
-```bash
-# 대화형 터미널 UI 시작
-gpf tui
+# 터널 종료
+gpf stop 12345                   # PID로 종료
+gpf stop-all
 ```
 
 ### 명령어
 
-```
-Usage:
-  gpf [command]
+| 명령어 | 설명 |
+|--------|------|
+| `gpf` | 모든 SSH 서버 표시 (대화형 TUI) |
+| `gpf <키워드>` | 서버 검색 (부분 일치, `%키워드%` 형태) |
+| `gpf - <키워드>` | 위와 동일 |
+| `gpf ports <별칭>` | 서버의 리스닝 포트 스캔 |
+| `gpf forward <별칭> <원격-포트> [로컬-포트]` | 포트 포워딩 생성 |
+| `gpf tunnels` | 활성 터널 보기 및 관리 |
+| `gpf stop <pid>` | PID로 터널 종료 |
+| `gpf stop-all` | 모든 터널 종료 |
+| `gpf version` | 버전 정보 표시 |
 
-Available Commands:
-  forward     SSH 포트 포워딩 생성
-  disconnect  활성 포워딩 종료
-  list        활성 포트 포워딩 목록
-  tui         대화형 TUI 시작
-  version     버전 정보 출력
+### TUI 키보드 단축키
 
-Flags:
-  -h, --help      Help for gpf
-  -v, --version   Version for gpf
-```
+| 키 | 동작 |
+|-----|------|
+| `↑` / `↓` | 서버 목록 이동 |
+| `Enter` | 액션 선택 (포트 포워딩 / SSH) |
+| `f` | 선택한 포트 포워딩 |
+| `s` | 선택한 서버에 SSH 접속 |
+| `k` | 선택한 터널 종료 |
+| `Ctrl+U` | 모든 터널 종료 |
+| `r` | 터널 목록 새로고침 |
+| `/` | 서버 필터링 |
+| `Esc` | 뒤로 가기 |
+| `q` | 종료 (모든 터널 중지) |
 
 ## 예제
 
-### 개발 워크플로우
+### 빠른 포트 포워딩
 
 ```bash
-# 애플리케이션, 데이터베이스, 캐시를 한 명령어로 포워딩
-gpf forward \
-  localhost:8080 app:3000 \
-  localhost:5432 db:5432 \
-  localhost:6379 redis:6379
+# 프로덕션 웹 서버 포워딩
+gpf forward prod-web 3000
+
+# 특정 로컬 포트로 포워딩
+gpf forward prod-db 5432 5432
 ```
 
-### SSH 설정 통합
+### 검색 및 연결
 
 ```bash
-# 특정 SSH 인증서 사용
-gpf forward --key ~/.ssh/deploy_key \
-  localhost:8443 staging:443
-```
+# 이름에 "mac"이 포함된 모든 서버 찾기
+gpf mac
 
-### 일회성 포워딩
-
-```bash
-# 연결 후 매핑 출력 및 종료
-gpf forward --once localhost:9090 server:80
+# 호스트 또는 사용자명으로 서버 찾기
+gpf staging
+gpf deploy
 ```
 
 ## 설정
 
-gpf는 다음 순서로 설정 파일을 찾습니다:
+gpf는 기존 `~/.ssh/config` 파일을 읽으므로 별도의 설정 파일이 필요하지 않습니다.
 
-1. `./gpf.yaml` (현재 디렉토리)
-2. `$HOME/.config/gpf/config.yaml`
-3. `$HOME/.gpf/config.yaml`
+```
+Host mac
+  HostName 192.168.1.100
+  User ubuntu
+  Port 22
+  IdentityFile ~/.ssh/id_ed25519
 
-설정 예시:
-
-```yaml
-ssh:
-  user: deploy
-  key: ~/.ssh/id_ed25519
-  timeout: 10s
-
-forwards:
-  - local: "localhost:8080"
-    remote: "production:3000"
-  - local: "localhost:5432"
-    remote: "production-db:5432"
+Host prod-web
+  HostName web.example.com
+  User deploy
 ```
 
 ## 소스에서 빌드

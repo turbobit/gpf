@@ -97,120 +97,98 @@ Or with a specific version:
 
 ## Usage
 
-### CLI Mode
-
-#### Forward a single port
+### Quick start
 
 ```bash
-# Forward local:8080 to remote:3000
-gpf forward localhost:8080 server:3000
+# Show all SSH servers from ~/.ssh/config
+gpf
 
-# With custom SSH key
-gpf forward --key ~/.ssh/id_ed25519 localhost:8080 server:3000
+# Search servers by keyword (partial match on name, host, user)
+gpf mac
+gpf prod
+gpf - macbook
 
-# With custom user
-gpf forward --user admin localhost:8080 server:3000
+# Scan listening ports on a server
+gpf ports myserver
 
-# Bind to a specific interface
-gpf forward --bind 0.0.0.0 localhost:8080 server:3000
-```
+# Create a port forward
+gpf forward myserver 3000        # remote :3000 → auto-assigned local port
+gpf forward myserver 3000 8080   # remote :3000 → local :8080
 
-#### Forward multiple ports
+# View active tunnels
+gpf tunnels
 
-```bash
-# Multiple local-to-remote mappings
-gpf forward localhost:8080 web:3000 localhost:5432 db:5432 localhost:6379 cache:6379
-
-# Or via config file
-gpf forward --config forwards.yaml
-```
-
-#### Manage forwards
-
-```bash
-# List active forwards
-gpf list
-
-# Disconnect a specific forward
-gpf disconnect 8080
-
-# Disconnect all forwards
-gpf disconnect --all
-```
-
-#### TUI Mode
-
-```bash
-# Launch the interactive terminal UI
-gpf tui
+# Stop a tunnel
+gpf stop 12345                   # by PID
+gpf stop-all
 ```
 
 ### Commands
 
-```
-Usage:
-  gpf [command]
+| Command | Description |
+|---------|-------------|
+| `gpf` | Show all SSH servers (interactive TUI) |
+| `gpf <keyword>` | Search servers (partial match, like `%keyword%`) |
+| `gpf - <keyword>` | Same as above |
+| `gpf ports <alias>` | Scan listening ports on a server |
+| `gpf forward <alias> <remote-port> [local-port]` | Create a port forward |
+| `gpf tunnels` | View and manage active tunnels |
+| `gpf stop <pid>` | Stop a tunnel by PID |
+| `gpf stop-all` | Stop all tunnels |
+| `gpf version` | Show version info |
 
-Available Commands:
-  forward     Create SSH port forwards
-  disconnect  Disconnect an active forward
-  list        List active port forwards
-  tui         Launch the interactive TUI
-  version     Print version info
+### TUI keyboard shortcuts
 
-Flags:
-  -h, --help      Help for gpf
-  -v, --version   Version for gpf
-```
+| Key | Action |
+|-----|--------|
+| `↑` / `↓` | Navigate server list |
+| `Enter` | Select action (Port Forward / SSH) |
+| `f` | Forward selected port |
+| `s` | SSH into selected server |
+| `k` | Kill selected tunnel |
+| `Ctrl+U` | Stop all tunnels |
+| `r` | Refresh tunnel list |
+| `/` | Filter servers |
+| `Esc` | Go back |
+| `q` | Quit (stops all tunnels) |
 
 ## Examples
 
-### Development workflow
+### Quick port forward
 
 ```bash
-# Forward your app, database, and cache in one command
-gpf forward \
-  localhost:8080 app:3000 \
-  localhost:5432 db:5432 \
-  localhost:6379 redis:6379
+# Forward production web server
+gpf forward prod-web 3000
+
+# Forward with a specific local port
+gpf forward prod-db 5432 5432
 ```
 
-### SSH config integration
+### Search and connect
 
 ```bash
-# Use a specific SSH identity
-gpf forward --key ~/.ssh/deploy_key \
-  localhost:8443 staging:443
-```
+# Find all servers with "mac" in the name
+gpf mac
 
-### One-off forward
-
-```bash
-# Connect, print the mapping, and exit
-gpf forward --once localhost:9090 server:80
+# Find servers by host or user
+gpf staging
+gpf deploy
 ```
 
 ## Configuration
 
-gpf looks for a configuration file in the following order:
+gpf reads your existing `~/.ssh/config` — no separate configuration file needed.
 
-1. `./gpf.yaml` (current directory)
-2. `$HOME/.config/gpf/config.yaml`
-3. `$HOME/.gpf/config.yaml`
+```
+Host mac
+  HostName 192.168.1.100
+  User ubuntu
+  Port 22
+  IdentityFile ~/.ssh/id_ed25519
 
-Example config:
-
-```yaml
-ssh:
-  user: deploy
-  key: ~/.ssh/id_ed25519
-  timeout: 10s
-
-forwards:
-  - local: "localhost:8080"
-    remote: "production:3000"
-  - local: "localhost:5432"
-    remote: "production-db:5432"
+Host prod-web
+  HostName web.example.com
+  User deploy
 ```
 
 ## Building from source
