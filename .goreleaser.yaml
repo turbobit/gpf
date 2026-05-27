@@ -2,34 +2,36 @@ version: 2
 
 project_name: gpf
 
-build:
-  id: gpf
-  main: .
-  binary: gpf
-  env:
-    - CGO_ENABLED=0
-  goos:
-    - linux
-    - darwin
-    - windows
-  goarch:
-    - amd64
-    - arm64
-  ignore:
-    - goos: darwin
-      goarch: amd64
-  mod_timestamp: "{{ .CommitTimestamp }}"
-  flags:
-    - -trimpath
-  ldflags:
-    - -s -w
-    - -X main.version={{ .Version }}
-    - -X main.commit={{ .ShortCommit }}
-    - -X main.date={{ .CommitTime }}
+builds:
+  - id: gpf
+    main: .
+    binary: gpf
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: darwin
+        goarch: amd64
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X main.version={{ .Version }}
+      - -X main.commit={{ .ShortCommit }}
+      - -X main.date={{ .CommitTime }}
 
-archives:
-  - id: gpf-archive
-    format: binary
+snapshot:
+  name_template: "{{ .Version }}"
+
+snapshots:
+  - id: gpf-binary
     name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
 
 changelog:
