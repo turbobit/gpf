@@ -17,6 +17,9 @@ func GenerateTunnelArgs(server config.SSHConfig, localPort, remotePort string) [
 		"-o", "ExitOnForwardFailure=yes",
 		"-o", "StrictHostKeyChecking=accept-new",
 		"-o", "ConnectTimeout=10",
+		"-o", "ServerAliveInterval=60",
+		"-o", "ServerAliveCountMax=9999",
+		"-o", "TCPKeepAlive=yes",
 		"-p", server.Port,
 		server.User + "@" + server.Host,
 	}
