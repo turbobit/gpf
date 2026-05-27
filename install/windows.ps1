@@ -13,7 +13,7 @@ $ProgressPreference = "SilentlyContinue"
 # Strip leading 'v' if present
 $versionClean = $Version -replace '^v', ''
 
-# Detect architecture from environment variables (no CIM/WMI needed)
+# Detect architecture from environment variables
 $arch = "amd64"
 $procArch = [Environment]::GetEnvironmentVariable("PROCESSOR_ARCHITECTURE", "Process")
 $procArchW64 = [Environment]::GetEnvironmentVariable("PROCESSOR_ARCHITEW6432", "Process")
@@ -25,29 +25,60 @@ if ($procArch -eq "ARM64" -or $procArchW64 -eq "ARM64") {
     if ($procArchW64) { $arch = "amd64" } else { Write-Host "Error: 32-bit Windows is not supported"; exit 1 }
 }
 
-$binaryName = "gpf_windows_${arch}.exe"
 $installDir = Join-Path $env:USERPROFILE ".gpf"
 $installPath = Join-Path $installDir "gpf.exe"
 
 try {
     Write-Host "Installing gpf ${Version} for Windows/${arch}..."
 
+    $baseDownloadUrl = "https://github.com/${REPO}/releases"
     if ($versionClean -eq "latest") {
-        $releasesUrl = "https://github.com/${REPO}/releases/latest/download/${binaryName}"
+        $baseDownloadUrl += "/latest"
     } else {
-        $releasesUrl = "https://github.com/${REPO}/releases/download/v${versionClean}/${binaryName}"
+        $baseDownloadUrl += "/download/v${versionClean}"
     }
 
-    Write-Host "Downloading from: $releasesUrl"
-    Invoke-WebRequest -Uri $releasesUrl -OutFile $installPath -UseBasicParsing
+    # Try bare binary first, fall back to tar.gz
+    $binaryName = "gpf_windows_${arch}.exe"
+    $tarName = "gpf_windows_${arch}.tar.gz"
+    $binaryUrl = "${baseDownloadUrl}/download/${binaryName}"
+    $tarUrl = "${baseDownloadUrl}/download/${tarName}"
+
+    Write-Host "Downloading..."
+    $tmpTar = Join-Path $env:TEMP "gpf_install.tar.gz"
+
+    try {
+        Invoke-WebRequest -Uri $binaryUrl -OutFile $installPath -UseBasicParsing
+        Write-Host "Downloaded binary directly."
+    } catch {
+        # Bare binary not found, try tar.gz
+        try {
+            Invoke-WebRequest -Uri $tarUrl -OutFile $tmpTar -UseBasicParsing
+            Write-Host "Downloaded tar.gz, extracting..."
+            tar -xzf $tmpTar -C (Split-Path $installPath) 2>$null
+            # The extracted file may have a different name, find it
+            $extracted = Get-ChildItem (Split-Path $installPath) -Filter "*.exe" | Select-Object -First 1
+            if ($extracted) {
+                if ($extracted.FullName -ne $installPath) {
+                    Move-Item $extracted.FullName $installPath -Force
+                }
+            }
+            Remove-Item $tmpTar -ErrorAction SilentlyContinue
+            Write-Host "Extracted binary."
+        } catch {
+            Write-Host "Error: failed to download gpf for Windows/${arch}"
+            Write-Host $_.Exception.Message
+            exit 1
+        }
+    }
 
     if (-not (Test-Path $installPath)) {
-        Write-Host "Error: download completed but file not found at $installPath"
+        Write-Host "Error: binary not found at $installPath"
         exit 1
     }
 
     $fileSize = (Get-Item $installPath).Length
-    Write-Host "Downloaded: $fileSize bytes"
+    Write-Host "Installed: $installPath ($fileSize bytes)"
 
     # Add to user PATH if not already present
     $gpfPath = $installDir
@@ -55,34 +86,29 @@ try {
     if ($currentPath -notlike "*$gpfPath*") {
         [Environment]::SetEnvironmentVariable("Path", "$currentPath;$gpfPath", "User")
         Write-Host "Added $gpfPath to your PATH (user scope)"
-        Write-Host "Note: you need to open a new terminal for PATH to take effect."
+        Write-Host "Note: open a new terminal for PATH to take effect."
     } else {
         Write-Host "$gpfPath is already in your PATH."
     }
 
-    # Test the installation by running gpf.exe with --version
+    # Verify installation
     Write-Host ""
     try {
         $verOutput = & $installPath --version 2>&1
         Write-Host "gpf version: $verOutput"
     } catch {
-        Write-Host "Warning: could not verify installation. Error: $_"
+        Write-Host "Warning: could not verify installation."
     }
 
     Write-Host ""
     Write-Host "==============================="
     Write-Host "Installation complete!"
     Write-Host "Binary: $installPath"
-    Write-Host "Version: $versionClean"
-    Write-Host ""
-    Write-Host "To use gpf in a new terminal:"
-    Write-Host "  gpf --help"
-    Write-Host ""
-    Write-Host "Or run directly now:"
-    Write-Host "  $installPath --help"
     Write-Host "==============================="
     Write-Host ""
-    Write-Host "Press any key to exit..."
+    Write-Host "Open a new terminal and run:"
+    Write-Host "  gpf --help"
+    Write-Host ""
     Start-Sleep -Seconds 10
 } catch {
     Write-Host ""
@@ -91,10 +117,7 @@ try {
     Write-Host "==============================="
     Write-Host ""
     Write-Host "Error: $($_.Exception.Message)"
+    Write-Host "Line: $($_.InvocationInfo.ScriptLineNumber)"
     Write-Host ""
-    Write-Host "At line: $($_.InvocationInfo.ScriptLineNumber)"
-    Write-Host "Position: $($_.InvocationInfo.PositionMessage)"
-    Write-Host ""
-    Write-Host "Press any key to exit..."
     Start-Sleep -Seconds 10
 }

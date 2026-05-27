@@ -27,6 +27,10 @@ builds:
       - -X main.commit={{ .ShortCommit }}
       - -X main.date={{ .CommitDate }}
 
+archives:
+  - format: binary
+    format_overwrite: true
+
 changelog:
   use: github
   sort: asc
