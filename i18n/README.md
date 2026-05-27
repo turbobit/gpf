@@ -2,6 +2,27 @@
 
 This directory contains translation files for gpf's user-facing strings.
 
+## How Language is Detected
+
+gpf automatically detects the UI language from these environment variables (in order):
+
+1. `LANG` (e.g., `ko_KR.UTF-8` → `ko.json`)
+2. `LANGUAGE`
+3. `LC_ALL`
+4. `LC_MESSAGES`
+
+The locale string is parsed to extract the primary language code (e.g., `ko_KR.UTF-8` → `ko`, `pt_BR.UTF-8` → `pt-BR`). If the detected locale file does not exist, English (`en.json`) is used as the fallback.
+
+### Override Language
+
+```bash
+# Temporarily switch to Korean
+LANG=ko_KR.UTF-8 gpf
+
+# Temporarily switch to English
+LANG=en_US.UTF-8 gpf
+```
+
 ## File Format
 
 - **Format**: JSON, UTF-8 encoded.
@@ -13,21 +34,21 @@ This directory contains translation files for gpf's user-facing strings.
 1. **Copy** `en.json` to a new file named `<locale>.json` (e.g., `ja.json`, `fr.json`, `de.json`).
 2. **Translate** all string values while keeping keys unchanged.
 3. **Save** as UTF-8 encoded JSON.
-4. **Test** by running gpf with the new locale to verify all strings display correctly.
+4. **Test** by running `LANG=<locale>.UTF-8 gpf` to verify all strings display correctly.
 5. **Open a Pull Request** with your new translation file.
 
 ### Locale Naming Conventions
 
 Use standard BCP 47 locale codes:
 
-| Example | File        |
-|---------|-------------|
-| English | `en.json`   |
-| Korean  | `ko.json`   |
-| Japanese| `ja.json`   |
-| French  | `fr.json`   |
-| Brazilian Portuguese | `pt-BR.json` |
-| German  | `de.json`   |
+| Example | File | Locale |
+|---------|------|--------|
+| English | `en.json` | `en`, `en_US.UTF-8` |
+| Korean | `ko.json` | `ko`, `ko_KR.UTF-8` |
+| Japanese | `ja.json` | `ja`, `ja_JP.UTF-8` |
+| French | `fr.json` | `fr`, `fr_FR.UTF-8` |
+| Brazilian Portuguese | `pt-BR.json` | `pt_BR`, `pt_BR.UTF-8` |
+| German | `de.json` | `de`, `de_DE.UTF-8` |
 
 ## Contributing
 

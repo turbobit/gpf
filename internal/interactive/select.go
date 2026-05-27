@@ -12,6 +12,7 @@ import (
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/bubbletea"
 	"github.com/turbobit/gpf/internal/config"
+	"github.com/turbobit/gpf/internal/i18n"
 	"github.com/turbobit/gpf/internal/ssh"
 	"github.com/turbobit/gpf/internal/theme"
 	"github.com/turbobit/gpf/internal/tunnel"
@@ -36,6 +37,7 @@ type model struct {
 	tunnels        []tunnel.Tunnel
 	tunnelIdx      int
 	err            error
+	L              *i18n.Translator
 }
 
 // --- Key bindings ---
@@ -82,6 +84,7 @@ func initialModel(keyword string, mode Mode) model {
 		spinner: s,
 		mode:    mode,
 		keyword: keyword,
+		L:       i18n.Default(),
 	}
 
 	// Load servers
@@ -92,15 +95,13 @@ func initialModel(keyword string, mode Mode) model {
 	m.servers = servers
 
 	// Setup table columns
-	columns := []table.Column{
-		{Title: "Name", Width: 30},
-		{Title: "Host", Width: 25},
-		{Title: "Port", Width: 6},
-		{Title: "User", Width: 10},
-	}
-
 	t := table.New(
-		table.WithColumns(columns),
+		table.WithColumns([]table.Column{
+			{Title: m.L.T("server_list"), Width: 30},
+			{Title: "Host", Width: 25},
+			{Title: "Port", Width: 6},
+			{Title: "User", Width: 10},
+		}),
 		table.WithRows(m.rows()),
 		table.WithFocused(true),
 		table.WithHeight(15),
@@ -328,19 +329,19 @@ func (m model) View() string {
 func (m model) viewServerList() string {
 	var s strings.Builder
 
-	s.WriteString(theme.TitleStyle.Render("gpf — Greenfield Port Forwarding") + "\n\n")
+	s.WriteString(theme.TitleStyle.Render(m.L.T("title")) + "\n\n")
 
 	if m.keyword != "" {
-		s.WriteString(theme.MutedStyle.Render("Filter: " + m.keyword) + "\n\n")
+		s.WriteString(theme.MutedStyle.Render(m.L.T("filter")+": "+m.keyword) + "\n\n")
 	}
 
 	if m.loading {
-		s.WriteString("  " + m.spinner.View() + " Loading servers...\n")
+		s.WriteString("  " + m.spinner.View() + " "+m.L.T("loading_servers")+"\n")
 		return s.String()
 	}
 
 	if len(m.servers) == 0 {
-		s.WriteString("  No servers found.\n")
+		s.WriteString("  "+m.L.T("no_servers")+"\n")
 		return s.String()
 	}
 
@@ -348,21 +349,21 @@ func (m model) viewServerList() string {
 	s.WriteString(m.table.View() + "\n")
 
 	s.WriteString(theme.MutedStyle.Render(
-		"  ↑↓ navigate  / filter  enter:action  q:quit"))
+		"  ↑↓ "+m.L.T("navigate")+"  / "+m.L.T("filter")+"  enter:"+m.L.T("action")+"  q:"+m.L.T("quit")))
 
 	return s.String()
 }
 
 func (m model) viewActionSelect() string {
 	if m.selectedIdx >= len(m.servers) {
-		return "No server selected.\n"
+		return m.L.T("no_servers") + "\n"
 	}
 	server := m.servers[m.selectedIdx]
 	var s strings.Builder
 	s.WriteString(fmt.Sprintf("Server: %s\n\n", server.Name))
-	s.WriteString(fmt.Sprintf("  %s [P]ort Forward — 포트 포워딩으로 연결\n", theme.ActionStyle.Render("▶")))
-	s.WriteString(fmt.Sprintf("  %s [S]SH Connect  — SSH 직접 접속\n\n", theme.MutedStyle.Render(" ")))
-	s.WriteString(theme.MutedStyle.Render("↑↓ navigate  enter:execute  esc:back"))
+	s.WriteString(fmt.Sprintf("  %s [P] %s — %s\n", theme.ActionStyle.Render("▶"), m.L.T("port_forward"), m.L.T("port_forward_desc")))
+	s.WriteString(fmt.Sprintf("  %s [S] %s — %s\n\n", theme.MutedStyle.Render(" "), m.L.T("ssh_connect"), m.L.T("ssh_connect_desc")))
+	s.WriteString(theme.MutedStyle.Render("↑↓ "+m.L.T("navigate")+"  enter:execute  esc:"+m.L.T("back")))
 	return s.String()
 }
 
@@ -370,16 +371,16 @@ func (m model) viewPortList() string {
 	server := m.servers[m.selectedIdx]
 	var s strings.Builder
 
-	s.WriteString(theme.HeaderStyle.Render("Server: " + server.Name) + "  " +
-		theme.MutedStyle.Render("◀ Back") + "\n\n")
+	s.WriteString(theme.HeaderStyle.Render("Server: "+server.Name) + "  " +
+		theme.MutedStyle.Render("◀ "+m.L.T("back")) + "\n\n")
 
 	if m.loading {
-		s.WriteString("  " + m.spinner.View() + " Scanning ports...\n")
+		s.WriteString("  " + m.spinner.View() + " "+m.L.T("scanning_ports")+"\n")
 		return s.String()
 	}
 
 	if len(m.ports) == 0 {
-		s.WriteString("  No listening ports found.\n")
+		s.WriteString("  "+m.L.T("no_ports")+"\n")
 		return s.String()
 	}
 
@@ -400,7 +401,7 @@ func (m model) viewPortList() string {
 	s.WriteString(t.View() + "\n\n")
 
 	s.WriteString(theme.MutedStyle.Render(
-		"↑↓ navigate  enter:forward  f:forward  esc:back  q:quit"))
+		"↑↓ "+m.L.T("navigate")+"  enter:"+m.L.T("forward")+"  f:"+m.L.T("forward")+"  esc:"+m.L.T("back")+"  q:"+m.L.T("quit")))
 
 	return s.String()
 }
@@ -420,15 +421,15 @@ func (m model) portRows() []table.Row {
 
 func (m model) viewTunnelCreate() string {
 	var s strings.Builder
-	s.WriteString("Creating tunnel...\n\n")
+	s.WriteString(m.L.T("creating_tunnel") + "\n\n")
 
 	if m.localPortMode {
 		cursor := " "
 		if m.localPortInput != "" {
 			cursor = "█"
 		}
-		s.WriteString(fmt.Sprintf("  Local port: [%s%s]\n\n", m.localPortInput, cursor))
-		s.WriteString(theme.MutedStyle.Render("Enter: create tunnel  esc: cancel"))
+		s.WriteString(fmt.Sprintf("  %s: [%s%s]\n\n", m.L.T("local_port"), m.localPortInput, cursor))
+		s.WriteString(theme.MutedStyle.Render("Enter: "+m.L.T("create_tunnel")+"  esc: "+m.L.T("cancel")))
 	} else {
 		s.WriteString("  " + m.spinner.View() + " Starting tunnel...\n")
 	}
@@ -447,13 +448,13 @@ func (m model) viewSSH() string {
 
 func (m model) viewTunnelManager() string {
 	var s strings.Builder
-	s.WriteString(theme.HeaderStyle.Render("Active Tunnels") + "  " +
-		theme.MutedStyle.Render("◀ Back  r:refresh") + "\n\n")
+	s.WriteString(theme.HeaderStyle.Render(m.L.T("active_tunnels")) + "  " +
+		theme.MutedStyle.Render("◀ "+m.L.T("back")+"  r:"+m.L.T("refresh")) + "\n\n")
 
 	m.loadTunnels()
 
 	if len(m.tunnels) == 0 {
-		s.WriteString("  No active tunnels.\n")
+		s.WriteString("  "+m.L.T("no_tunnels")+"\n")
 		return s.String()
 	}
 
@@ -473,7 +474,7 @@ func (m model) viewTunnelManager() string {
 	s.WriteString(t.View() + "\n\n")
 
 	s.WriteString(theme.MutedStyle.Render(
-		"↑↓ navigate  k:kill  ctrl+u:stop-all  r:refresh"))
+		"↑↓ "+m.L.T("navigate")+"  k:"+m.L.T("kill")+"  ctrl+u:"+m.L.T("stop_all")+"  r:"+m.L.T("refresh")))
 
 	return s.String()
 }
@@ -495,11 +496,11 @@ func (m model) statusBar() string {
 	var status string
 	switch m.mode {
 	case ModeConfig:
-		status = fmt.Sprintf("Servers: %d", len(m.servers))
+		status = fmt.Sprintf("%s: %d", m.L.T("servers_count"), len(m.servers))
 	case ModePorts:
-		status = fmt.Sprintf("Ports: %d", len(m.ports))
+		status = fmt.Sprintf("%s: %d", m.L.T("ports_count"), len(m.ports))
 	case ModeTunnels:
-		status = fmt.Sprintf("Tunnels: %d", len(m.tunnels))
+		status = fmt.Sprintf("%s: %d", m.L.T("tunnels_count"), len(m.tunnels))
 	default:
 		status = ""
 	}

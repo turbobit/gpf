@@ -108,6 +108,10 @@ gpf mac
 gpf prod
 gpf - macbook
 
+# Use a specific language
+gpf --lang ko
+gpf -l en mac
+
 # Scan listening ports on a server
 gpf ports myserver
 
@@ -136,6 +140,8 @@ gpf stop-all
 | `gpf stop <pid>` | Stop a tunnel by PID |
 | `gpf stop-all` | Stop all tunnels |
 | `gpf version` | Show version info |
+| `--lang <locale>` | Set UI language (`en`, `ko`) |
+| `-l <locale>` | Short form of `--lang` |
 
 ### TUI keyboard shortcuts
 
@@ -220,14 +226,51 @@ gpf uses [GoReleaser](https://goreleaser.com/) with GitHub Actions to automate r
 
 ## Internationalization (i18n)
 
-gpf supports multiple languages through JSON translation files in the `i18n/` directory.
+gpf supports multiple languages. The UI language is **automatically detected** from your system locale.
+
+### How Language is Detected
+
+gpf checks these environment variables in order:
+
+1. `LANG` (e.g., `ko_KR.UTF-8` → Korean)
+2. `LANGUAGE`
+3. `LC_ALL`
+4. `LC_MESSAGES`
+
+If none of these are set, or the locale is not available, **English** is used as the default.
+
+### Changing the Language
+
+**Option 1: `--lang` flag (recommended)**
+
+```bash
+# Korean
+gpf --lang ko
+gpf -l ko mac          # Korean UI, search for "mac"
+gpf tunnels --lang en  # English UI
+
+# The flag works anywhere in the command
+gpf forward prod 3000 --lang ko
+```
+
+**Option 2: Environment variable**
+
+Set the `LANG` environment variable:
+
+```bash
+LANG=ko_KR.UTF-8 gpf
+LANG=en_US.UTF-8 gpf
+
+# Or permanently in your shell profile (~/.bashrc, ~/.zshrc)
+export LANG=ko_KR.UTF-8
+```
 
 ### Available Languages
 
-| Language | File            |
-|----------|-----------------|
-| English  | `i18n/en.json`  |
-| Korean   | `i18n/ko.json`  |
+| Language | File | Locale Example |
+|----------|------|----------------|
+| English  | `i18n/en.json` | `en`, `en_US`, `en_US.UTF-8` |
+| Korean   | `i18n/ko.json` | `ko`, `ko_KR`, `ko_KR.UTF-8` |
 
 ### Adding a New Language
 

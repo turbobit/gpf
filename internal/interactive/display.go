@@ -3,10 +3,15 @@ package interactive
 import (
 	"github.com/charmbracelet/bubbletea"
 	"github.com/turbobit/gpf/internal/config"
+	"github.com/turbobit/gpf/internal/i18n"
 )
 
 // Config launches the server list TUI.
-func Config(keyword string) {
+// If locale is non-empty, it overrides the auto-detected language.
+func Config(keyword string, locale string) {
+	if locale != "" {
+		i18n.Force(locale)
+	}
 	m := initialModel(keyword, ModeConfig)
 	p := tea.NewProgram(m, tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
@@ -15,7 +20,11 @@ func Config(keyword string) {
 }
 
 // ShowTunnels launches the tunnel manager TUI.
-func ShowTunnels() {
+// If locale is non-empty, it overrides the auto-detected language.
+func ShowTunnels(locale string) {
+	if locale != "" {
+		i18n.Force(locale)
+	}
 	m := initialModel("", ModeTunnels)
 	p := tea.NewProgram(m, tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {

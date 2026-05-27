@@ -16,22 +16,22 @@ func Main() {
 	command.CheckSSH()
 	args := os.Args[1:]
 
-	action, value := command.Which(args)
-	switch action {
+	opts := command.Which(args)
+	switch opts.Action {
 	case command.InteractiveConfig:
-		interactive.Config(value)
+		interactive.Config(opts.Value, opts.Locale)
 	case command.ShowPorts:
-		ssh.ShowPorts(value)
+		ssh.ShowPorts(opts.Value)
 	case command.CreateTunnel:
-		createTunnel(value)
+		createTunnel(opts.Value)
 	case command.ShowTunnels:
-		interactive.ShowTunnels()
+		interactive.ShowTunnels(opts.Locale)
 	case command.StopTunnel:
-		tunnel.Stop(value)
+		tunnel.Stop(opts.Value)
 	case command.StopAllTunnels:
 		tunnel.StopAll()
 	default:
-		interactive.Config("")
+		interactive.Config("", opts.Locale)
 	}
 }
 
