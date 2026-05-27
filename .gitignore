@@ -1,0 +1,28 @@
+# Binaries
+/bin/
+/dist/
+*.exe
+port-forwarding.exe
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Vendor
+vendor/
+
+# Local install directory
+.gpf/
+
+# Coverage
+coverage.out
+coverage.html
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Goreleaser (already covered above)
