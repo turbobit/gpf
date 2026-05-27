@@ -65,5 +65,10 @@ if ($currentPath -notlike "*$gpfPath*") {
 
 Write-Host ""
 Write-Host "Installation complete!"
+Write-Host "Binary: $installPath"
+Write-Host "Version: $versionClean"
+Write-Host ""
+Write-Host "gpf --help to get started."
+Write-Host ""
 Write-Host "Press any key to exit..."
-$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+Start-Sleep -Seconds 5
