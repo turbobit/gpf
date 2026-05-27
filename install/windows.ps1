@@ -3,12 +3,12 @@
 #   Invoke-WebRequest -Uri "https://raw.githubusercontent.com/turbobit/gpf/master/install/windows.ps1" -UseBasicParsing | Invoke-Expression
 #   .\install\windows.ps1 v0.1.0
 
-param(
-    [string]$Version = "latest"
-)
-
 $REPO = "turbobit/gpf"
 $ProgressPreference = "SilentlyContinue"
+$Version = if ($args[0]) { $args[0] } else { "latest" }
+
+# Strip leading 'v' if present
+$versionClean = $Version -replace '^v', ''
 
 # Detect architecture from environment variables
 $arch = "amd64"
@@ -25,15 +25,14 @@ if ($procArch -eq "ARM64" -or $procArchW64 -eq "ARM64") {
 $installDir = Join-Path $env:USERPROFILE ".gpf"
 $installPath = Join-Path $installDir "gpf.exe"
 
+$binaryName = "gpf_windows_${arch}.exe"
+
+$downloadUrl = "https://github.com/${REPO}/releases/latest/download/${binaryName}"
+if ($Version -ne "latest") {
+    $downloadUrl = "https://github.com/${REPO}/releases/download/v${versionClean}/${binaryName}"
+}
+
 try {
-    $binaryName = "gpf_windows_${arch}.exe"
-
-    $downloadUrl = "https://github.com/${REPO}/releases/latest/download/${binaryName}"
-    if ($Version -ne "latest") {
-        $versionClean = $Version -replace '^v', ''
-        $downloadUrl = "https://github.com/${REPO}/releases/download/v${versionClean}/${binaryName}"
-    }
-
     Write-Host "Installing gpf ${Version} for Windows/${arch}..."
     Write-Host "Downloading from: $downloadUrl"
 
@@ -76,6 +75,7 @@ try {
     Write-Host "Open a new terminal and run:"
     Write-Host "  gpf --help"
     Write-Host ""
+    Write-Host "Press any key to exit..."
     Start-Sleep -Seconds 10
 } catch {
     Write-Host ""
@@ -86,5 +86,6 @@ try {
     Write-Host "Error: $($_.Exception.Message)"
     Write-Host "Line: $($_.InvocationInfo.ScriptLineNumber)"
     Write-Host ""
+    Write-Host "Press any key to exit..."
     Start-Sleep -Seconds 10
 }
