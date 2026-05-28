@@ -56,7 +56,23 @@ func ParseConfig(path string) ([]SSHConfig, error) {
 func parse(text string) ([]SSHConfig, error) {
 	var configs []SSHConfig
 	var current *SSHConfig
+	var hostNames []string
 	scanner := bufio.NewScanner(strings.NewReader(text))
+
+	flushCurrent := func() {
+		if current == nil {
+			return
+		}
+		names := hostNames
+		if len(names) == 0 {
+			names = []string{current.Name}
+		}
+		for _, name := range names {
+			cfg := *current
+			finalize(&cfg, name)
+			configs = append(configs, cfg)
+		}
+	}
 
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -71,22 +87,15 @@ func parse(text string) ([]SSHConfig, error) {
 		if !strings.HasPrefix(line, " ") && !strings.HasPrefix(line, "\t") {
 			lower := strings.ToLower(trimmed)
 			if strings.HasPrefix(lower, "host ") || trimmed == "host" {
-				// Save previous entry
-				if current != nil {
-					finalize(current)
-					configs = append(configs, *current)
-				}
-				// Start new entry
+				flushCurrent()
+
 				parts := strings.Fields(trimmed)
 				if len(parts) < 2 {
 					current = &SSHConfig{}
+					hostNames = nil
 				} else {
-					// Support "Host name1 name2 name3" — create one entry per name
-					for _, name := range parts[1:] {
-						current = &SSHConfig{Name: name}
-						configs = append(configs, *current)
-					}
 					current = &SSHConfig{Name: parts[1]}
+					hostNames = parts[1:]
 				}
 				continue
 			}
@@ -122,19 +131,16 @@ func parse(text string) ([]SSHConfig, error) {
 		}
 	}
 
-	// Finalize last entry
-	if current != nil {
-		finalize(current)
-		configs = append(configs, *current)
-	}
+	flushCurrent()
 
 	return configs, nil
 }
 
 // finalize applies defaults to a parsed entry.
-func finalize(s *SSHConfig) {
+func finalize(s *SSHConfig, name string) {
+	s.Name = name
 	if s.Host == "" {
-		s.Host = s.Name
+		s.Host = name
 	}
 	if s.Port == "" {
 		s.Port = "22"
