@@ -14,6 +14,8 @@ A fast, modern SSH port forwarding CLI & TUI tool built with Go and Bubble Tea.
 
 ### TUI Preview
 
+**SSH Mode** — Direct connection to remote server
+
 ```
  ┌── gpf — Greenfield Port Forwarding ───────────────────────────┐
  │                                                                │
@@ -28,7 +30,21 @@ A fast, modern SSH port forwarding CLI & TUI tool built with Go and Bubble Tea.
  │   ↑↓ navigate  / filter  enter:action  q:quit                 │
  └────────────────────────────────────────────────────────────────┘
 
+ ┌── Server: mac ─────────────────────────────────────────────────┐
+ │                                                                │
+ │   [S] SSH Connect — Connect directly via SSH                  │
+ │   [P] Port Forward — Connect via port forwarding              │
+ │                                                                │
+ │   ← back  ↑↓ navigate  enter:execute                          │
+ └────────────────────────────────────────────────────────────────┘
+```
+
+**Forward Mode** — Port forwarding with tunnel management
+
+```
  ┌── Server: mac  ◀ back ────────────────────────────────────────┐
+ │                                                                │
+ │   Scanning ports...                                            │
  │                                                                │
  │   Port          Tunnel  Proto  Addr           Process          │
  │   ───────────────────────────────────────────────────────────  │
@@ -37,6 +53,13 @@ A fast, modern SSH port forwarding CLI & TUI tool built with Go and Bubble Tea.
  │   :5432         -       tcp    127.0.0.1:5432 postgres         │
  │                                                                │
  │   ↑↓ navigate  enter:forward  f:local-port  esc:back  x:stop  │
+ └────────────────────────────────────────────────────────────────┘
+
+ ┌── Server: mac  ◀ back ────────────────────────────────────────┐
+ │                                                                │
+ │   ✓ Tunnel created localhost:13000 -> mac:3000                │
+ │                                                                │
+ │   ←/esc: back to list  x:stop                                 │
  └────────────────────────────────────────────────────────────────┘
 ```
 
