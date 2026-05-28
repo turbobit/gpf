@@ -10,38 +10,58 @@ var (
 
 	// Styles
 	TitleStyle = lipgloss.NewStyle().
-			Bold(true).
-			Foreground(colorPrimary)
+				Bold(true).
+				Foreground(colorPrimary)
 
 	HeaderStyle = lipgloss.NewStyle().
-			Bold(true).
-			Foreground(colorPrimary).
-			BorderStyle(lipgloss.NormalBorder()).
-			BorderBottom(true).
-			PaddingTop(1)
+				Bold(true).
+				Foreground(colorPrimary).
+				BorderStyle(lipgloss.NormalBorder()).
+				BorderBottom(true).
+				PaddingTop(1)
 
 	SelectedStyle = lipgloss.NewStyle().
-			Foreground(colorAccent).
-			Bold(true)
+				Foreground(colorAccent).
+				Bold(true)
 
 	MutedStyle = lipgloss.NewStyle().
-			Foreground(colorMuted)
+				Foreground(colorMuted)
 
 	StatusBarStyle = lipgloss.NewStyle().
-			Padding(0, 1).
-			Background(lipgloss.AdaptiveColor{Light: "#E0E0E0", Dark: "#1A1A2E"}).
-			Foreground(colorMuted)
+				Padding(0, 1).
+				Background(lipgloss.AdaptiveColor{Light: "#E0E0E0", Dark: "#1A1A2E"}).
+				Foreground(colorMuted)
 
-	BorderStyle = lipgloss.NormalBorder()
+	BorderStyle = lipgloss.RoundedBorder()
 
 	TableBorder = lipgloss.NewStyle().
-			BorderStyle(BorderStyle).
-			BorderForeground(colorMuted).
-			Padding(0, 1)
+				BorderStyle(BorderStyle).
+				BorderForeground(colorMuted).
+				BorderTop(true).
+				BorderBottom(true).
+				BorderLeft(true).
+				BorderRight(true)
 
 	ActionStyle = lipgloss.NewStyle().
-			Foreground(colorAccent).
-			Bold(true)
+				Foreground(colorAccent).
+				Bold(true)
 
 	SpinnerStyle = lipgloss.NewStyle().Foreground(colorPrimary)
+
+	SelectedAction = lipgloss.NewStyle().
+					Foreground(colorAccent).
+					Bold(true).
+					PaddingLeft(1).
+					BorderStyle(lipgloss.ThickBorder()).
+					BorderLeft(true).
+					BorderForeground(colorAccent)
+
+	UnselectedAction = lipgloss.NewStyle().
+						PaddingLeft(1)
+
+	SuccessStyle = lipgloss.NewStyle().
+					Foreground(lipgloss.AdaptiveColor{Light: "#00AA00", Dark: "#00FF00"})
+
+	ErrorStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.AdaptiveColor{Light: "#CC0000", Dark: "#FF4444"})
 )
