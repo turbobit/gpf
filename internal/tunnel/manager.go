@@ -5,7 +5,9 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"runtime"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/turbobit/gpf/internal/config"
@@ -16,11 +18,13 @@ import (
 func Create(server config.SSHConfig, remotePort, localPort string) {
 	// Auto-assign local port if not specified
 	if localPort == "" {
-		localPort = findNextPort()
+		localPort = strconv.Itoa(FindNextPort())
 	}
 
 	// Check if local port is already in use
-	if !isPortAvailable(localPort) {
+	localPortNum, _ := strconv.Atoi(localPort)
+	remotePortNum, _ := strconv.Atoi(remotePort)
+	if !IsPortAvailable(localPortNum) {
 		fmt.Fprintf(os.Stderr, "Error: local port %s is already in use\n", localPort)
 		fmt.Fprintf(os.Stderr, "Try a different local port or stop the existing tunnel\n")
 		os.Exit(1)
@@ -50,8 +54,8 @@ func Create(server config.SSHConfig, remotePort, localPort string) {
 	tunnels = append(tunnels, Tunnel{
 		ID:         fmt.Sprintf("%d", pids),
 		ServerName: server.Name,
-		LocalPort:  parseInt(localPort),
-		RemotePort: parseInt(remotePort),
+		LocalPort:  localPortNum,
+		RemotePort: remotePortNum,
 		PID:        pids,
 		CreatedAt:  now(),
 	})
@@ -80,7 +84,7 @@ func Stop(id string) {
 		}
 	}
 
-	if err := killProcess(pid); err != nil {
+	if err := KillProcess(pid); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to stop tunnel (PID %d): %v\n", pid, err)
 		os.Exit(1)
 	}
@@ -108,7 +112,7 @@ func StopAll() {
 
 	count := 0
 	for _, t := range tunnels {
-		if err := killProcess(t.PID); err == nil {
+		if err := KillProcess(t.PID); err == nil {
 			count++
 		}
 	}
@@ -116,8 +120,16 @@ func StopAll() {
 	fmt.Printf("Stopped %d tunnel(s).\n", count)
 }
 
-// KillProcess sends SIGTERM then SIGKILL to a process.
-func killProcess(pid int) error {
+// KillProcess sends SIGTERM then SIGKILL (Unix) or taskkill (Windows) to a process.
+func KillProcess(pid int) error {
+	if runtime.GOOS == "windows" {
+		out, err := exec.Command("taskkill", "/F", "/PID", strconv.Itoa(pid)).CombinedOutput()
+		fmt.Fprintf(os.Stderr, "[KILL] PID=%d exit=%v output=%s\n", pid, err, string(out))
+		if err != nil {
+			return fmt.Errorf("taskkill failed: %v, output: %s", err, string(out))
+		}
+		return nil
+	}
 	cmd := exec.Command("kill", "-TERM", strconv.Itoa(pid))
 	if err := cmd.Run(); err != nil {
 		// Try SIGKILL
@@ -127,22 +139,62 @@ func killProcess(pid int) error {
 	return nil
 }
 
-// findNextPort finds the next available port starting from 13000.
-func findNextPort() string {
+// KillProcessByPort finds and kills SSH processes listening on a given local port.
+func KillProcessByPort(port int) error {
+	if runtime.GOOS != "windows" {
+		return fmt.Errorf("only supported on Windows")
+	}
+	// Find all PIDs listening on this port
+	out, err := exec.Command("netstat", "-ano").CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("netstat failed: %v", err)
+	}
+
+	killCount := 0
+	for _, line := range strings.Split(string(out), "\n") {
+		if !strings.Contains(line, fmt.Sprintf(":%d ", port)) && !strings.Contains(line, fmt.Sprintf(":%d\t", port)) {
+			continue
+		}
+		fields := strings.Fields(line)
+		if len(fields) < 5 {
+			continue
+		}
+		pidStr := fields[len(fields)-1]
+		pid, err := strconv.Atoi(pidStr)
+		if err != nil || pid == 0 {
+			continue
+		}
+		// Only kill ssh.exe processes
+		cmdOut, _ := exec.Command("tasklist", "/FI", fmt.Sprintf("PID eq %d", pid), "/FO", "CSV").CombinedOutput()
+		if !strings.Contains(string(cmdOut), "ssh") && !strings.Contains(string(cmdOut), "SSH") {
+			continue
+		}
+		kout, kerr := exec.Command("taskkill", "/F", "/PID", pidStr).CombinedOutput()
+		fmt.Fprintf(os.Stderr, "[KILL-PORT] PID=%d port=%d exit=%v output=%s\n", pid, port, kerr, string(kout))
+		if kerr == nil {
+			killCount++
+		}
+	}
+	if killCount == 0 {
+		return fmt.Errorf("no SSH process found on port %d", port)
+	}
+	return nil
+}
+
+// FindNextPort finds the next available port starting from 13000.
+func FindNextPort() int {
 	for port := 13000; port < 65535; port++ {
-		if isPortAvailable(strconv.Itoa(port)) {
-			return strconv.Itoa(port)
+		if IsPortAvailable(port) {
+			return port
 		}
 	}
 	fmt.Fprintf(os.Stderr, "No available ports starting from 13000\n")
 	os.Exit(1)
-	return ""
+	return 0
 }
 
-// isPortAvailable checks if a TCP port is available.
-func isPortAvailable(portStr string) bool {
-	port := parseInt(portStr)
-
+// IsPortAvailable checks if a TCP port is available.
+func IsPortAvailable(port int) bool {
 	// Check if gpf already has a tunnel on this port
 	tunnels, _ := LoadState()
 	for _, t := range tunnels {
@@ -152,17 +204,12 @@ func isPortAvailable(portStr string) bool {
 	}
 
 	// Check if OS is using this port
-	conn, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%s", portStr))
+	conn, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", port))
 	if err != nil {
 		return false
 	}
 	conn.Close()
 	return true
-}
-
-func parseInt(s string) int {
-	n, _ := strconv.Atoi(s)
-	return n
 }
 
 func now() time.Time {
