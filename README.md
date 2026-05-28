@@ -17,29 +17,50 @@ A fast, modern SSH port forwarding CLI & TUI tool built with Go and Bubble Tea.
 ```
  ┌── gpf — Greenfield Port Forwarding ───────────────────────────┐
  │                                                                │
- │   Active Forwards                                            │
- │   ───────────────────────────────────────────────────────────  │
- │   ┌────────────┬──────────────────┬───────────┬───────┐       │
- │   │ Local      │ Remote           │ State     │       │       │
- │   ├────────────┼──────────────────┼───────────┼───────┤       │
- │   │ :8080      │ server.local:3000│ connected │       │       │
- │   │ :5432      │ db.local:5432    │ connected │       │       │
- │   │ :6379      │ cache.local:6379 │ stopping  │       │       │
- │   └────────────┴──────────────────┴───────────┴───────┘       │
+ │   Server List                                                  │
+ │   ┌────────────┬──────────────┬───────────┬───────┐            │
+ │   │ Server     │ Host         │ Port      │ User  │            │
+ │   ├────────────┼──────────────┼───────────┼───────┤            │
+ │   │ mac        │ 192.168.1.100│ 22        │ ubuntu│            │
+ │   │ prod-web   │ web.example.com│ 22      │ deploy│            │
+ │   └────────────┴──────────────┴───────────┴───────┘            │
  │                                                                │
- │   [New] [Connect] [Disconnect] [Quit]                         │
+ │   ↑↓ navigate  / filter  enter:action  q:quit                 │
+ └────────────────────────────────────────────────────────────────┘
+
+ ┌── Server: mac  ◀ back ────────────────────────────────────────┐
+ │                                                                │
+ │   Port          Tunnel  Proto  Addr           Process          │
+ │   ───────────────────────────────────────────────────────────  │
+ │   :22           -       tcp    0.0.0.0:22   sshd               │
+ │   :3000         ✓       tcp    127.0.0.1:3000 node             │
+ │   :5432         -       tcp    127.0.0.1:5432 postgres         │
+ │                                                                │
+ │   ↑↓ navigate  enter:forward  f:local-port  esc:back  x:stop  │
  └────────────────────────────────────────────────────────────────┘
 ```
 
 ## Features
 
-- **Interactive TUI** — Visual dashboard for managing all port forwards at a glance
+- **Interactive TUI** — Multi-step flow: server select → action select → port scan → tunnel create
 - **CLI mode** — Scriptable one-liners for CI/CD and automation
 - **Multiple tunnels** — Forward multiple ports to different hosts simultaneously
-- **Persistent sessions** — Survives connection drops with automatic reconnection
 - **Cross-platform** — Works on Linux, macOS, and Windows
 - **Zero dependencies** — Single statically-linked binary, no runtime deps
 - **Fast startup** — Written in Go for near-instant launch times
+- **Auto port assignment** — Automatically finds next available local port (13000+)
+
+### Port Forwarding Flow
+
+```
+1. Server List       → Select SSH server from ~/.ssh/config
+2. Action Select     → Choose "Port Forward" or "SSH Connect"
+3. Port Scan         → Scans remote ports (lsof/ss/netstat)
+                      ✓ = active tunnel, - = no tunnel
+4. Tunnel Created    → Shows connection: localhost:13000 → server:3000
+                      ←/esc → back to port list
+                      x → kill tunnel on this port
+```
 
 ## Installation
 
@@ -147,11 +168,14 @@ gpf stop-all
 
 | Key | Action |
 |-----|--------|
-| `↑` / `↓` | Navigate server list |
-| `Enter` | Select action (Port Forward / SSH) |
-| `f` | Forward selected port |
+| `↑` / `↓` | Navigate list |
+| `Enter` | Select action (Port Forward / SSH) or forward selected port |
+| `←` | Go back (or stop tunnel from port list) |
 | `s` | SSH into selected server |
-| `k` | Kill selected tunnel |
+| `f` | Open local port input for selected port |
+| `l` | Open local port input for selected port |
+| `x` | Kill SSH tunnel on selected port (port-based, works even if state file is out of sync) |
+| `k` | Kill selected tunnel (tunnel manager mode) |
 | `Ctrl+U` | Stop all tunnels |
 | `r` | Refresh tunnel list |
 | `/` | Filter servers |
