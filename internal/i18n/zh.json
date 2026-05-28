@@ -28,5 +28,6 @@
   "active_tunnels": "活动隧道",
   "servers_count": "服务器",
   "ports_count": "端口",
-  "tunnels_count": "隧道"
+  "tunnels_count": "隧道",
+  "back_to_list": "返回列表"
 }

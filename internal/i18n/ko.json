@@ -28,5 +28,6 @@
   "active_tunnels": "활성 터널",
   "servers_count": "서버",
   "ports_count": "포트",
-  "tunnels_count": "터널"
+  "tunnels_count": "터널",
+  "back_to_list": "목록으로 돌아가기"
 }

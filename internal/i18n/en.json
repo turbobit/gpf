@@ -28,5 +28,6 @@
   "active_tunnels": "Active Tunnels",
   "servers_count": "Servers",
   "ports_count": "Ports",
-  "tunnels_count": "Tunnels"
+  "tunnels_count": "Tunnels",
+  "back_to_list": "Back to list"
 }
