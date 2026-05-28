@@ -22,7 +22,12 @@ var ssLineRe = regexp.MustCompile(`\S+\s+\d+\s+\d+\s+(\S+?):(\d+)\s+\S+.*users:\
 // Example: tcp  0  0  127.0.0.1:13000  0.0.0.0:*  LISTEN  12345/python3
 var netstatLineRe = regexp.MustCompile(`(tcp|udp)\s+\d+\s+\d+\s+(\S+?):(\d+)\s+\S+\s+\w+\s+(\d+)/(\S+)`)
 
-// ParseSSOutput parses the output of "ss -tlnp" or "netstat -tlnp".
+// lsofLineRe matches "lsof -iTCP -sTCP:LISTEN -P -n" output lines.
+// Only matches (LISTEN) connections, not (ESTABLISHED), etc.
+// Example: node    12345 user   12u  IPv4 0x...      0t0  TCP 127.0.0.1:13000 (LISTEN)
+var lsofLineRe = regexp.MustCompile(`(\S+)\s+(\d+)\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+TCP\s+(\S+?):(\d+)\s+\(LISTEN\)`)
+
+// ParseSSOutput parses the output of "ss -tlnp", "netstat -tlnp", or "lsof -i -P -n".
 func ParseSSOutput(output string) []PortInfo {
 	var ports []PortInfo
 	for _, line := range strings.Split(output, "\n") {
@@ -51,6 +56,19 @@ func ParseSSOutput(output string) []PortInfo {
 				Protocol:  strings.ToLower(matches[1]),
 				LocalAddr: matches[2],
 				Process:   matches[5],
+			})
+			continue
+		}
+
+		// Try lsof format (macOS)
+		// Example: node    12345 user   12u  IPv4 0x...      0t0  TCP 127.0.0.1:13000 (LISTEN)
+		if matches := lsofLineRe.FindStringSubmatch(line); matches != nil {
+			port, _ := strconv.Atoi(matches[4])
+			ports = append(ports, PortInfo{
+				Port:      port,
+				Protocol:  "tcp",
+				LocalAddr: matches[3],
+				Process:   matches[1],
 			})
 		}
 	}
