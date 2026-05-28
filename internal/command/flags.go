@@ -12,6 +12,7 @@ const (
 	ShowTunnels
 	StopTunnel
 	StopAllTunnels
+	ShowVersion
 )
 
 // Options holds parsed CLI options.
@@ -52,7 +53,7 @@ func Which(args []string) Options {
 	case "stop-all":
 		return Options{Action: StopAllTunnels, Locale: locale}
 	case "version", "-v", "--version":
-		return Options{Action: InteractiveConfig, Value: remaining[0], Locale: locale}
+		return Options{Action: ShowVersion, Locale: locale}
 	default:
 		// "gpf mac" → search ~/.ssh/config for "mac"
 		return Options{Action: InteractiveConfig, Value: strings.Join(remaining, " "), Locale: locale}

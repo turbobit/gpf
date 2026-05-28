@@ -21,7 +21,11 @@ type Tunnel struct {
 
 // StateFile returns the path to the tunnels state file.
 func StateFile() string {
-	dir := filepath.Join(os.Getenv("HOME"), ".gpf")
+	home, _ := os.UserHomeDir()
+	if home == "" {
+		home = "."
+	}
+	dir := filepath.Join(home, ".gpf")
 	os.MkdirAll(dir, 0700)
 	return filepath.Join(dir, "tunnels.json")
 }
@@ -46,8 +50,6 @@ func LoadState() ([]Tunnel, error) {
 
 // SaveState writes the tunnels state file.
 func SaveState(tunnels []Tunnel) error {
-	dir := filepath.Join(os.Getenv("HOME"), ".gpf")
-	os.MkdirAll(dir, 0700)
 	data, err := json.MarshalIndent(map[string][]Tunnel{"tunnels": tunnels}, "", "  ")
 	if err != nil {
 		return err

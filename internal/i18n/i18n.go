@@ -19,7 +19,11 @@ var forcedLocale string
 
 // configPath is ~/.gpf/lang
 var configPath = func() string {
-	dir := filepath.Join(os.Getenv("HOME"), ".gpf")
+	home, _ := os.UserHomeDir()
+	if home == "" {
+		home = "."
+	}
+	dir := filepath.Join(home, ".gpf")
 	return filepath.Join(dir, "lang")
 }()
 

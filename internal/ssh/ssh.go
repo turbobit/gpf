@@ -91,7 +91,8 @@ func runRemoteCommand(server config.SSHConfig, command string) (string, error) {
 		"-p", server.Port,
 		"-o", "StrictHostKeyChecking=accept-new",
 		"-o", "ConnectTimeout=10",
-		"-o", "BatchMode=yes",
+		"-o", "ServerAliveInterval=60",
+		"-o", "ServerAliveCountMax=3",
 		server.User + "@" + server.Host,
 		"-" + command,
 	}

@@ -13,6 +13,12 @@ import (
 	"github.com/turbobit/gpf/internal/tunnel"
 )
 
+var (
+	version = "dev"
+	commit  = "unknown"
+	date    = "unknown"
+)
+
 func Main() {
 	command.CheckSSH()
 	args := os.Args[1:]
@@ -31,6 +37,8 @@ func Main() {
 		tunnel.Stop(opts.Value)
 	case command.StopAllTunnels:
 		tunnel.StopAll()
+	case command.ShowVersion:
+		showVersion()
 	default:
 		runInteractive("", opts.Locale)
 	}
@@ -154,4 +162,8 @@ func createTunnel(raw string) {
 	}
 
 	tunnel.Create(server, remotePort, parts[2])
+}
+
+func showVersion() {
+	fmt.Printf("gpf version %s\n  built: %s\n  commit: %s\n", version, date, commit)
 }
