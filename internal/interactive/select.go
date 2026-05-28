@@ -53,6 +53,8 @@ type model struct {
 	tunnelRemotePort int
 	tunnelPID        int
 	tunnelErr        error
+	locales          []string
+	localeIdx        int
 }
 
 // ForwardTarget holds the info needed for port forwarding.
@@ -79,6 +81,7 @@ type keyMap struct {
 	StopAll   key.Binding
 	Refresh   key.Binding
 	LocalPort key.Binding
+	Lang      key.Binding
 }
 
 func newKeyMap() keyMap {
@@ -97,6 +100,7 @@ func newKeyMap() keyMap {
 		StopAll:   key.NewBinding(key.WithKeys("ctrl+u")),
 		Refresh:   key.NewBinding(key.WithKeys("r")),
 		LocalPort: key.NewBinding(key.WithKeys("l")),
+		Lang:      key.NewBinding(key.WithKeys("L")),
 	}
 }
 
@@ -107,10 +111,12 @@ func initialModel(keyword string, mode Mode) model {
 	s.Style = theme.SpinnerStyle
 
 	m := model{
-		spinner: s,
-		mode:    mode,
-		keyword: keyword,
-		L:       i18n.Default(),
+		spinner:     s,
+		mode:        mode,
+		keyword:     keyword,
+		L:           i18n.Default(),
+		locales:     []string{"en", "ko", "zh"},
+		localeIdx:   0,
 	}
 
 	// Load servers
@@ -373,6 +379,13 @@ func (m model) updateKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			}
 		}
 
+	case key.Matches(msg, k.Lang):
+		m.localeIdx = (m.localeIdx + 1) % len(m.locales)
+		locale := m.locales[m.localeIdx]
+		m.L = i18n.For(locale)
+		i18n.Save(locale)
+		m.rebuildColumns()
+
 	case key.Matches(msg, key.NewBinding(key.WithKeys("left", "esc"))):
 		if m.mode == ModePorts && (m.tunnelCreated || m.tunnelErr != nil) {
 			// Left/Esc → stop tunnel and return to list
@@ -418,6 +431,33 @@ func (m model) updateKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	}
 
 	return m, nil
+}
+
+func (m *model) rebuildColumns() {
+	switch m.mode {
+	case ModeConfig:
+		m.table.SetColumns([]table.Column{
+			{Title: m.L.T("server_list"), Width: 30},
+			{Title: "Host", Width: 25},
+			{Title: "Port", Width: 6},
+			{Title: "User", Width: 10},
+		})
+	case ModePorts:
+		m.table.SetColumns([]table.Column{
+			{Title: "Port", Width: 8},
+			{Title: "Tunnel", Width: 9},
+			{Title: "Proto", Width: 6},
+			{Title: "Addr", Width: 14},
+			{Title: "Process", Width: 18},
+		})
+	case ModeTunnels:
+		m.table.SetColumns([]table.Column{
+			{Title: "Local", Width: 12},
+			{Title: "Remote", Width: 12},
+			{Title: "Server", Width: 20},
+			{Title: "PID", Width: 8},
+		})
+	}
 }
 
 func (m *model) handleBack() (tea.Model, tea.Cmd) {
@@ -918,6 +958,10 @@ func (m model) statusBar() string {
 	default:
 		status = ""
 	}
+	if status != "" {
+		status += "  "
+	}
+	status += m.L.T("locale") + ": " + m.locales[m.localeIdx] + "  L:" + m.L.T("change_locale")
 	return theme.StatusBarStyle.Render(status)
 }
 

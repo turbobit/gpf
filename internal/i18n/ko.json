@@ -29,5 +29,7 @@
   "servers_count": "서버",
   "ports_count": "포트",
   "tunnels_count": "터널",
-  "back_to_list": "목록으로 돌아가기"
+  "back_to_list": "목록으로 돌아가기",
+  "locale": "언어",
+  "change_locale": "L"
 }

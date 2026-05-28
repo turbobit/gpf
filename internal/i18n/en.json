@@ -29,5 +29,7 @@
   "servers_count": "Servers",
   "ports_count": "Ports",
   "tunnels_count": "Tunnels",
-  "back_to_list": "Back to list"
+  "back_to_list": "Back to list",
+  "locale": "Language",
+  "change_locale": "L"
 }

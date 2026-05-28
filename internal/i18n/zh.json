@@ -29,5 +29,7 @@
   "servers_count": "服务器",
   "ports_count": "端口",
   "tunnels_count": "隧道",
-  "back_to_list": "返回列表"
+  "back_to_list": "返回列表",
+  "locale": "语言",
+  "change_locale": "L"
 }
