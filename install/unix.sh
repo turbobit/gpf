@@ -45,7 +45,7 @@ else
   DOWNLOAD_URL="https://github.com/${REPO}/releases/download/v${version_clean}/${BINARY}"
 fi
 
-TMPFILE="$(mktemp)/gpf"
+TMPFILE="$(mktemp)"
 
 echo "Installing gpf ${VERSION} for ${OS}/${ARCH}..."
 echo "Downloading from: $DOWNLOAD_URL"

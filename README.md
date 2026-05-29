@@ -87,11 +87,39 @@ A fast, modern SSH port forwarding CLI & TUI tool built with Go and Bubble Tea.
 
 ## Installation
 
-### Option 1: GitHub Releases (Recommended)
+### Option 1: Install Script (Recommended)
+
+One-liner for Unix-like systems (Linux, macOS):
+
+```bash
+# Install the latest version
+curl -sSfL https://raw.githubusercontent.com/turbobit/gpf/master/install/unix.sh | sh
+
+# Install a specific version
+curl -sSfL https://raw.githubusercontent.com/turbobit/gpf/master/install/unix.sh | sh -s -- v0.2.3
+```
+
+Windows (PowerShell):
+
+```powershell
+# Install the latest version
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/turbobit/gpf/master/install/windows.ps1" -UseBasicParsing | Invoke-Expression
+
+# Install a specific version
+.\install\windows.ps1 v0.2.3
+```
+
+### Option 2: Go install
+
+```bash
+go install github.com/turbobit/gpf@latest
+```
+
+> **Note:** The binary is installed to `$GOPATH/bin` (default: `~/go/bin`). Make sure this directory is in your `PATH`.
+
+### Option 3: GitHub Releases
 
 Pre-built binaries are available on [GitHub Releases](https://github.com/turbobit/gpf/releases).
-
-Download the appropriate binary for your platform:
 
 | Platform | Binary |
 |----------|--------|
@@ -102,41 +130,11 @@ Download the appropriate binary for your platform:
 | Windows arm64 | `gpf_windows_arm64.exe` |
 
 ```bash
-# Example: Linux amd64
-VERSION=v0.1.0
-curl -LO "https://github.com/turbobit/gpf/releases/download/${VERSION}/gpf_linux_amd64"
-chmod +x gpf_linux_amd64
-sudo mv gpf_linux_amd64 /usr/local/bin/gpf
-```
-
-### Option 2: Go install
-
-```bash
-go install github.com/turbobit/gpf@latest
-```
-
-### Option 3: Unix install script
-
-```bash
-curl -sSfL https://raw.githubusercontent.com/turbobit/gpf/master/install/unix.sh | sh -s -- v0.1.0
-```
-
-Or install the latest version (no version argument needed):
-
-```bash
-curl -sSfL https://raw.githubusercontent.com/turbobit/gpf/master/install/unix.sh | sh
-```
-
-### Option 4: Windows PowerShell
-
-```powershell
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/turbobit/gpf/master/install/windows.ps1" -UseBasicParsing | Invoke-Expression
-```
-
-Or with a specific version:
-
-```powershell
-.\install\windows.ps1 v0.1.0
+# Example: macOS arm64
+VERSION=v0.2.3
+curl -LO "https://github.com/turbobit/gpf/releases/download/${VERSION}/gpf_darwin_arm64"
+chmod +x gpf_darwin_arm64
+sudo mv gpf_darwin_arm64 /usr/local/bin/gpf
 ```
 
 ## Usage
